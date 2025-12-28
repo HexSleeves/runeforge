@@ -1,0 +1,22 @@
+[package]
+name = "runeforge-bsp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+documentation.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Binary space partitioning for dungeon generation in the Runeforge library"
+
+[dependencies]
+runeforge-geometry = { workspace = true }
+runeforge-random = { workspace = true }
+serde = { workspace = true, optional = true }
+
+[features]
+default = []
+serialization = ["serde"]
+
+[dev-dependencies]

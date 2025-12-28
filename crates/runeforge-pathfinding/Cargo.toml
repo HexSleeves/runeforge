@@ -1,0 +1,22 @@
+[package]
+name = "runeforge-pathfinding"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+documentation.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Pathfinding algorithms for the Runeforge roguelike library"
+
+[dependencies]
+runeforge-geometry = { workspace = true }
+pathfinding = { workspace = true }
+
+[dev-dependencies]
+# criterion = { workspace = true }
+
+# [[bench]]
+# name = "pathfinding_bench"
+# harness = false

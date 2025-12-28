@@ -1,0 +1,41 @@
+[package]
+name = "runeforge-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+documentation.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Unified facade for the Runeforge roguelike library"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+runeforge-color = { workspace = true }
+runeforge-geometry = { workspace = true }
+runeforge-random = { workspace = true }
+runeforge-noise = { workspace = true, optional = true }
+runeforge-pathfinding = { workspace = true, optional = true }
+runeforge-fov = { workspace = true, optional = true }
+runeforge-bsp = { workspace = true, optional = true }
+runeforge-algorithms = { workspace = true, optional = true }
+runeforge-terminal = { workspace = true, optional = true }
+runeforge-tileset = { workspace = true, optional = true }
+runeforge-input = { workspace = true, optional = true }
+
+[features]
+default = ["terminal", "fov", "pathfinding"]
+terminal = ["runeforge-terminal"]
+fov = ["runeforge-fov"]
+pathfinding = ["runeforge-pathfinding"]
+noise = ["runeforge-noise"]
+bsp = ["runeforge-bsp"]
+algorithms = ["runeforge-algorithms"]
+tileset = ["runeforge-tileset"]
+input = ["runeforge-input"]
+full = ["terminal", "fov", "pathfinding", "noise", "bsp", "algorithms", "tileset", "input"]
+
+[dev-dependencies]

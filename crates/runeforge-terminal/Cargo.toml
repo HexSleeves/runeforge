@@ -1,0 +1,28 @@
+[package]
+name = "runeforge-terminal"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+documentation.workspace = true
+keywords.workspace = true
+categories.workspace = true
+description = "Terminal/console rendering for the Runeforge roguelike library"
+
+[dependencies]
+runeforge-color = { workspace = true }
+runeforge-geometry = { workspace = true }
+runeforge-tileset = { workspace = true }
+winit = { workspace = true }
+wgpu = { workspace = true, optional = true }
+pixels = { workspace = true, optional = true }
+bytemuck = { workspace = true, optional = true }
+thiserror = { workspace = true }
+
+[features]
+default = ["render-software"]
+render-wgpu = ["wgpu", "pixels", "bytemuck"]
+render-software = []
+
+[dev-dependencies]

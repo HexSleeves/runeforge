@@ -1,0 +1,89 @@
+[workspace]
+resolver = "2"
+members = [
+  "crates/runeforge-core",
+  "crates/runeforge-color",
+  "crates/runeforge-geometry",
+  "crates/runeforge-noise",
+  "crates/runeforge-random",
+  "crates/runeforge-pathfinding",
+  "crates/runeforge-fov",
+  "crates/runeforge-bsp",
+  "crates/runeforge-terminal",
+  "crates/runeforge-tileset",
+  "crates/runeforge-input",
+  "crates/runeforge-algorithms",
+]
+
+[workspace.package]
+version       = "0.1.0"
+edition       = "2021"
+rust-version  = "1.85"
+license       = "BSD-3-Clause"
+repository    = "https://github.com/yourusername/runeforge"
+homepage      = "https://runeforge.rs"
+documentation = "https://docs.rs/runeforge"
+keywords      = ["roguelike", "gamedev", "terminal", "ascii"]
+categories    = ["game-development", "graphics", "algorithms"]
+
+[workspace.dependencies]
+# Internal crates
+runeforge-color       = { path = "crates/runeforge-color", version = "0.1.0" }
+runeforge-geometry    = { path = "crates/runeforge-geometry", version = "0.1.0" }
+runeforge-noise       = { path = "crates/runeforge-noise", version = "0.1.0" }
+runeforge-random      = { path = "crates/runeforge-random", version = "0.1.0" }
+runeforge-pathfinding = { path = "crates/runeforge-pathfinding", version = "0.1.0" }
+runeforge-fov         = { path = "crates/runeforge-fov", version = "0.1.0" }
+runeforge-bsp         = { path = "crates/runeforge-bsp", version = "0.1.0" }
+runeforge-terminal    = { path = "crates/runeforge-terminal", version = "0.1.0" }
+runeforge-tileset     = { path = "crates/runeforge-tileset", version = "0.1.0" }
+runeforge-input       = { path = "crates/runeforge-input", version = "0.1.0" }
+runeforge-algorithms  = { path = "crates/runeforge-algorithms", version = "0.1.0" }
+
+# Window & Events
+winit = "0.30"
+
+# Rendering
+wgpu     = "28.0.0"
+pixels   = "0.15.0"
+bytemuck = "1.24.0"
+
+# Text rendering
+ab_glyph    = "0.2"
+cosmic-text = "0.15.0"
+bdf-parser  = "0.1.0"
+
+# Images
+image = { version = "0.25", default-features = false, features = ["png"] }
+
+# Algorithms
+pathfinding  = "4.11"
+noise        = "0.9"
+bresenham    = "0.1"
+line_drawing = "1.0"
+
+# Utilities
+rand    = "0.9"
+palette = "0.7"
+flate2  = "1.1"
+
+# Serialization (optional)
+serde = { version = "1.0", features = ["derive"] }
+
+# Error handling
+thiserror = "2.0"
+anyhow    = "1.0"
+
+# Logging
+log = "0.4"
+
+# Testing
+criterion = "0.8"
+
+[profile.dev]
+opt-level = 1 # Faster debug builds
+
+[profile.release]
+lto           = true
+codegen-units = 1
+opt-level     = 3
