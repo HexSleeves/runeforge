@@ -1,23 +1,25 @@
 [package]
-name = "runeforge-tileset"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-repository.workspace = true
+name                    = "runeforge-tileset"
+version.workspace       = true
+edition.workspace       = true
+rust-version.workspace  = true
+license.workspace       = true
+repository.workspace    = true
 documentation.workspace = true
-keywords.workspace = true
-categories.workspace = true
-description = "Font and tileset loading for the Runeforge roguelike library"
+keywords.workspace      = true
+categories.workspace    = true
+description             = "Font and tileset loading for the Runeforge roguelike library"
 
 [dependencies]
-ab_glyph = { workspace = true }
-image = { workspace = true }
-thiserror = { workspace = true }
+runeforge-color = { workspace = true }
+ab_glyph        = { workspace = true }
+bdf-parser      = { workspace = true }
+image           = { workspace = true }
+thiserror       = { workspace = true }
 
 [features]
-default = ["truetype", "bitmap"]
+default  = ["truetype", "bitmap"]
 truetype = []
-bitmap = []
+bitmap   = []
 
 [dev-dependencies]
