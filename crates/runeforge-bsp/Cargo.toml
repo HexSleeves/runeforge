@@ -20,3 +20,9 @@ default = []
 serialization = ["serde"]
 
 [dev-dependencies]
+runeforge-random = { workspace = true }
+criterion = { workspace = true }
+
+[[bench]]
+name    = "bsp_bench"
+harness = false

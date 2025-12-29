@@ -14,8 +14,8 @@ description             = "Field-of-view algorithms for the Runeforge roguelike 
 runeforge-geometry = { workspace = true }
 
 [dev-dependencies]
-# criterion = { workspace = true }
+criterion = { workspace = true }
 
-# [[bench]]
-# name    = "fov_bench"
-# harness = false
+[[bench]]
+name    = "fov_bench"
+harness = false

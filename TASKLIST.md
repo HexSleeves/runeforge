@@ -2,7 +2,7 @@
 
 This document tracks the implementation progress of the Runeforge roguelike library.
 
-**Overall Progress: 8/22 tasks completed (36%)**
+**Overall Progress: 10/22 tasks completed (45%)**
 
 ---
 
@@ -29,12 +29,12 @@ This document tracks the implementation progress of the Runeforge roguelike libr
 
 ## Phase 2: Core Algorithms (Weeks 5-8)
 
-**Status: 🔄 IN PROGRESS (2/4 tasks complete)**
+**Status: ✅ COMPLETED**
 
 - [x] Implement FOV algorithms (symmetric shadowcasting with 8 tests)
 - [x] Implement pathfinding algorithms (A* with 4-dir and 8-dir, 5 tests + demo)
-- [ ] Implement BSP tree generation for dungeon layouts
-- [ ] Add comprehensive benchmarks for algorithm performance
+- [x] Implement BSP tree generation for dungeon layouts (12 tests + demo)
+- [x] Add comprehensive benchmarks for algorithm performance (FOV, pathfinding, BSP)
 
 **Deliverables:**
 
@@ -179,18 +179,27 @@ Each phase must meet these criteria before being marked complete:
 - ✨ **NEW:** Symmetric shadowcasting FOV algorithm
 - ✨ **NEW:** Terminal rendering with ANSI escape codes
 - ✨ **NEW:** A* pathfinding with 4-directional and 8-directional movement
-- ✨ **NEW:** Interactive pathfinding visualization demo
+- ✨ **NEW:** BSP dungeon generation with rooms and corridors
 
 **Recently Completed:**
 
 - `runeforge-fov`: Symmetric shadowcasting with fraction-based precision
 - `runeforge-terminal`: ANSI terminal renderer with RGB color support
 - `runeforge-pathfinding`: A* algorithm with Manhattan and Chebyshev heuristics
-- Pathfinding demo showcasing maze navigation and movement types
+- `runeforge-bsp`: Binary space partitioning for dungeon generation (12 tests)
+- BSP demo showcasing configurable dungeon layouts
+- ✨ **NEW:** Criterion benchmarks for FOV, pathfinding, and BSP algorithms
+
+**Benchmark Results (sample):**
+
+- FOV (radius 10): ~1.5 µs per computation
+- A* pathfinding (25 tiles, 4-dir): ~11 µs per path
+- BSP dungeon (80x50): ~5.6 µs per generation
 
 **Next Up:**
 
-- Phase 2: Continue with BSP generation and performance benchmarks
+- Phase 3: Noise generation and map algorithms
+- Phase 4: GPU/software/terminal rendering backends
 - Phase 5: Add keyboard input handling for interactive demos
 
 **Target Completion:** 24 weeks from project start
