@@ -463,7 +463,7 @@ mod tests {
 
     #[test]
     fn test_console_bounds_checking() {
-        let mut console = TestConsole::new(10, 10);
+        let console = TestConsole::new(10, 10);
 
         // In bounds
         assert!(console.in_bounds(Point::new(0, 0)));
