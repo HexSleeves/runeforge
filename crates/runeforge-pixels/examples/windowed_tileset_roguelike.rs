@@ -17,12 +17,12 @@ use pixels::{Pixels, SurfaceTexture};
 use runeforge_color::Color;
 use runeforge_console::Console;
 use runeforge_geometry::Point;
+use runeforge_input::{InputMap, VirtualKey};
 use runeforge_pixels::PixelsRenderer;
 use runeforge_tileset::Tileset;
 use winit::application::ApplicationHandler;
 use winit::event::{ElementState, KeyEvent, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
-use winit::keyboard::{KeyCode, PhysicalKey};
 use winit::window::{Window, WindowId};
 
 const CONSOLE_WIDTH: u32 = 80;
@@ -34,6 +34,7 @@ struct Game {
     pixels: Option<Pixels<'static>>,
     renderer: PixelsRenderer,
     player_pos: Point,
+    input_map: InputMap,
 }
 
 impl Game {
@@ -44,6 +45,7 @@ impl Game {
             pixels: None,
             renderer,
             player_pos: Point::new(40, 12),
+            input_map: InputMap::roguelike_default(),
         }
     }
 
@@ -124,7 +126,10 @@ impl Game {
 
         self.renderer.draw_string(
             Point::new(2, 24),
-            &format!("Position: ({:2}, {:2})", self.player_pos.x, self.player_pos.y),
+            &format!(
+                "Position: ({:2}, {:2})",
+                self.player_pos.x, self.player_pos.y
+            ),
             Color::GREEN,
             Color::BLACK,
         );
@@ -137,8 +142,8 @@ impl Game {
         );
 
         self.renderer.draw_string(
-            Point::new(45, 24),
-            "Arrow keys to move",
+            Point::new(42, 24),
+            "Arrow/Vi-keys/Numpad",
             Color::rgb(100, 150, 255),
             Color::BLACK,
         );
@@ -217,39 +222,37 @@ impl ApplicationHandler for Game {
             }
             WindowEvent::KeyboardInput {
                 event:
-                    KeyEvent {
-                        physical_key: PhysicalKey::Code(key_code),
+                    key_event @ KeyEvent {
                         state: ElementState::Pressed,
                         ..
                     },
                 ..
-            } => match key_code {
-                KeyCode::Escape => {
-                    println!("ESC pressed. Exiting...");
-                    event_loop.exit();
+            } => {
+                // Map physical key to virtual keys using input system
+                // Collect keys first to avoid borrowing issues
+                let virtual_keys = self
+                    .input_map
+                    .map_key_event(&key_event)
+                    .map(|keys| keys.to_vec());
+
+                if let Some(keys) = virtual_keys {
+                    for vkey in keys {
+                        match vkey {
+                            VirtualKey::Move(direction) => {
+                                let (dx, dy) = direction.to_delta();
+                                self.move_player(dx, dy);
+                                self.render_scene();
+                                self.update_pixels();
+                            }
+                            VirtualKey::Cancel => {
+                                println!("ESC pressed. Exiting...");
+                                event_loop.exit();
+                            }
+                            _ => {}
+                        }
+                    }
                 }
-                KeyCode::ArrowUp => {
-                    self.move_player(0, -1);
-                    self.render_scene();
-                    self.update_pixels();
-                }
-                KeyCode::ArrowDown => {
-                    self.move_player(0, 1);
-                    self.render_scene();
-                    self.update_pixels();
-                }
-                KeyCode::ArrowLeft => {
-                    self.move_player(-1, 0);
-                    self.render_scene();
-                    self.update_pixels();
-                }
-                KeyCode::ArrowRight => {
-                    self.move_player(1, 0);
-                    self.render_scene();
-                    self.update_pixels();
-                }
-                _ => {}
-            },
+            }
             WindowEvent::RedrawRequested => {
                 self.update_pixels();
             }
