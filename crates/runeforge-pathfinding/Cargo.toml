@@ -1,18 +1,19 @@
 [package]
-name = "runeforge-pathfinding"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-repository.workspace = true
+name                    = "runeforge-pathfinding"
+version.workspace       = true
+edition.workspace       = true
+rust-version.workspace  = true
+license.workspace       = true
+repository.workspace    = true
 documentation.workspace = true
-keywords.workspace = true
-categories.workspace = true
-description = "Pathfinding algorithms for the Runeforge roguelike library"
+keywords.workspace      = true
+categories.workspace    = true
+description             = "Pathfinding algorithms for the Runeforge roguelike library"
 
 [dependencies]
+runeforge-color    = { workspace = true }
 runeforge-geometry = { workspace = true }
-pathfinding = { workspace = true }
+pathfinding        = { workspace = true }
 
 [dev-dependencies]
 # criterion = { workspace = true }

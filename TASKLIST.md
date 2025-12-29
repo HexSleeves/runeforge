@@ -2,7 +2,7 @@
 
 This document tracks the implementation progress of the Runeforge roguelike library.
 
-**Overall Progress: 7/22 tasks completed (32%)**
+**Overall Progress: 8/22 tasks completed (36%)**
 
 ---
 
@@ -29,10 +29,10 @@ This document tracks the implementation progress of the Runeforge roguelike libr
 
 ## Phase 2: Core Algorithms (Weeks 5-8)
 
-**Status: 🔄 IN PROGRESS (1/4 tasks complete)**
+**Status: 🔄 IN PROGRESS (2/4 tasks complete)**
 
 - [x] Implement FOV algorithms (symmetric shadowcasting with 8 tests)
-- [ ] Implement pathfinding algorithms (A*, Dijkstra, breadth-first)
+- [x] Implement pathfinding algorithms (A* with 4-dir and 8-dir, 5 tests + demo)
 - [ ] Implement BSP tree generation for dungeon layouts
 - [ ] Add comprehensive benchmarks for algorithm performance
 
@@ -178,17 +178,19 @@ Each phase must meet these criteria before being marked complete:
 - Dice notation parsing
 - ✨ **NEW:** Symmetric shadowcasting FOV algorithm
 - ✨ **NEW:** Terminal rendering with ANSI escape codes
-- ✨ **NEW:** Interactive FOV demo examples
+- ✨ **NEW:** A* pathfinding with 4-directional and 8-directional movement
+- ✨ **NEW:** Interactive pathfinding visualization demo
 
 **Recently Completed:**
 
 - `runeforge-fov`: Symmetric shadowcasting with fraction-based precision
 - `runeforge-terminal`: ANSI terminal renderer with RGB color support
-- Two demo examples showcasing FOV visualization
+- `runeforge-pathfinding`: A* algorithm with Manhattan and Chebyshev heuristics
+- Pathfinding demo showcasing maze navigation and movement types
 
 **Next Up:**
 
-- Phase 2: Continue with pathfinding (A*, Dijkstra) and BSP generation
+- Phase 2: Continue with BSP generation and performance benchmarks
 - Phase 5: Add keyboard input handling for interactive demos
 
 **Target Completion:** 24 weeks from project start

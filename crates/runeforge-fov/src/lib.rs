@@ -253,7 +253,8 @@ fn scan<F, G>(
         let tile_blocking = is_blocking(tile);
 
         // Walls use is_wall_visible, floors use is_symmetric
-        if (tile_blocking && row.is_wall_visible(col)) || (!tile_blocking && row.is_symmetric(col)) {
+        if (tile_blocking && row.is_wall_visible(col)) || (!tile_blocking && row.is_symmetric(col))
+        {
             mark_visible(tile);
         }
 

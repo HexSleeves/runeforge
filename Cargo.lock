@@ -1927,6 +1927,7 @@ name = "runeforge-pathfinding"
 version = "0.1.0"
 dependencies = [
  "pathfinding",
+ "runeforge-color",
  "runeforge-geometry",
 ]
 
