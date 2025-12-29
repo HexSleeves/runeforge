@@ -2,7 +2,7 @@
 
 This document tracks the implementation progress of the Runeforge roguelike library.
 
-**Overall Progress: 5/22 tasks completed (23%)**
+**Overall Progress: 7/22 tasks completed (32%)**
 
 ---
 
@@ -29,9 +29,9 @@ This document tracks the implementation progress of the Runeforge roguelike libr
 
 ## Phase 2: Core Algorithms (Weeks 5-8)
 
-**Status: 🔄 PENDING**
+**Status: 🔄 IN PROGRESS (1/4 tasks complete)**
 
-- [ ] Implement FOV algorithms (shadowcasting, recursive shadowcasting)
+- [x] Implement FOV algorithms (symmetric shadowcasting with 8 tests)
 - [ ] Implement pathfinding algorithms (A*, Dijkstra, breadth-first)
 - [ ] Implement BSP tree generation for dungeon layouts
 - [ ] Add comprehensive benchmarks for algorithm performance
@@ -74,12 +74,12 @@ This document tracks the implementation progress of the Runeforge roguelike libr
 
 ## Phase 4: Rendering Backend (Weeks 13-16)
 
-**Status: 🔄 PENDING**
+**Status: 🔄 IN PROGRESS (1/4 tasks complete)**
 
 - [ ] Implement font and tileset loading (TrueType, bitmap)
 - [ ] Create GPU rendering backend using wgpu + pixels
 - [ ] Create software rendering backend (CPU-based)
-- [ ] Create terminal backend with ANSI escape codes
+- [x] Create terminal backend with ANSI escape codes (7 tests, 2 demo examples)
 
 **Deliverables:**
 
@@ -176,14 +176,24 @@ Each phase must meet these criteria before being marked complete:
 - Full 2D geometry primitives
 - Robust random number generation
 - Dice notation parsing
+- ✨ **NEW:** Symmetric shadowcasting FOV algorithm
+- ✨ **NEW:** Terminal rendering with ANSI escape codes
+- ✨ **NEW:** Interactive FOV demo examples
+
+**Recently Completed:**
+
+- `runeforge-fov`: Symmetric shadowcasting with fraction-based precision
+- `runeforge-terminal`: ANSI terminal renderer with RGB color support
+- Two demo examples showcasing FOV visualization
 
 **Next Up:**
 
-- Phase 2: Core algorithms (FOV, pathfinding, BSP)
+- Phase 2: Continue with pathfinding (A*, Dijkstra) and BSP generation
+- Phase 5: Add keyboard input handling for interactive demos
 
 **Target Completion:** 24 weeks from project start
 
 ---
 
-*Last Updated: 2025-12-27*
+*Last Updated: 2025-12-28*
 *Project Repository: <https://github.com/yourusername/runeforge>*

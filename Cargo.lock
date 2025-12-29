@@ -1945,6 +1945,7 @@ dependencies = [
  "bytemuck",
  "pixels",
  "runeforge-color",
+ "runeforge-fov",
  "runeforge-geometry",
  "runeforge-tileset",
  "thiserror 2.0.17",

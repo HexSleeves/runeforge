@@ -26,3 +26,4 @@ render-wgpu = ["wgpu", "pixels", "bytemuck"]
 render-software = []
 
 [dev-dependencies]
+runeforge-fov = { workspace = true }

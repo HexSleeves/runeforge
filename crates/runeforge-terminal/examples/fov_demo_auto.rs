@@ -1,0 +1,255 @@
+//! Automatic FOV demonstration
+//!
+//! This example automatically shows the field-of-view algorithm updating
+//! as the player moves through the map. No keyboard input required.
+
+use runeforge_color::Color;
+use runeforge_fov::compute_fov;
+use runeforge_geometry::Point;
+use runeforge_terminal::Terminal;
+use std::io;
+use std::thread;
+use std::time::Duration;
+
+/// Represents the game map
+struct Map {
+    width: u32,
+    height: u32,
+    tiles: Vec<bool>, // true = wall, false = floor
+}
+
+impl Map {
+    /// Creates a new map with a simple dungeon layout
+    fn new(width: u32, height: u32) -> Self {
+        let mut tiles = vec![false; (width * height) as usize];
+
+        // Create border walls
+        for x in 0..width {
+            tiles[x as usize] = true; // Top wall
+            tiles[((height - 1) * width + x) as usize] = true; // Bottom wall
+        }
+        for y in 0..height {
+            tiles[(y * width) as usize] = true; // Left wall
+            tiles[(y * width + width - 1) as usize] = true; // Right wall
+        }
+
+        // Add some interior walls for interest
+        for x in 10..20 {
+            if x != 15 {
+                // Leave a gap
+                tiles[(5 * width + x) as usize] = true;
+            }
+        }
+
+        for y in 8..15 {
+            if y != 11 {
+                // Leave a gap
+                tiles[(y * width + 25) as usize] = true;
+            }
+        }
+
+        // Add some pillars
+        tiles[(8 * width + 15) as usize] = true;
+        tiles[(12 * width + 18) as usize] = true;
+
+        Self {
+            width,
+            height,
+            tiles,
+        }
+    }
+
+    /// Returns true if the position is a wall
+    fn is_blocking(&self, pos: Point) -> bool {
+        if pos.x < 0 || pos.y < 0 || pos.x >= self.width as i32 || pos.y >= self.height as i32 {
+            return true; // Out of bounds is blocking
+        }
+        let index = (pos.y as u32 * self.width + pos.x as u32) as usize;
+        self.tiles[index]
+    }
+
+    /// Returns true if the position is walkable
+    fn is_walkable(&self, pos: Point) -> bool {
+        !self.is_blocking(pos)
+    }
+}
+
+/// The game state
+struct Game {
+    map: Map,
+    player_pos: Point,
+    fov_radius: i32,
+    visible: Vec<bool>,
+}
+
+impl Game {
+    fn new() -> Self {
+        let map = Map::new(60, 20);
+        let player_pos = Point::new(5, 10);
+        let visible = vec![false; (map.width * map.height) as usize];
+
+        let mut game = Self {
+            map,
+            player_pos,
+            fov_radius: 8,
+            visible,
+        };
+
+        game.update_fov();
+        game
+    }
+
+    /// Update the FOV based on player position
+    fn update_fov(&mut self) {
+        // Clear previous visibility
+        for v in &mut self.visible {
+            *v = false;
+        }
+
+        // Compute new FOV
+        compute_fov(
+            self.player_pos,
+            self.fov_radius,
+            &|p| self.map.is_blocking(p),
+            &mut |p| {
+                if p.x >= 0
+                    && p.y >= 0
+                    && p.x < self.map.width as i32
+                    && p.y < self.map.height as i32
+                {
+                    let index = (p.y as u32 * self.map.width + p.x as u32) as usize;
+                    self.visible[index] = true;
+                }
+            },
+        );
+    }
+
+    /// Move the player in the given direction
+    fn move_player(&mut self, dx: i32, dy: i32) -> bool {
+        let new_pos = Point::new(self.player_pos.x + dx, self.player_pos.y + dy);
+        if self.map.is_walkable(new_pos) {
+            self.player_pos = new_pos;
+            self.update_fov();
+            true
+        } else {
+            false
+        }
+    }
+
+    /// Render the game to the terminal
+    fn render(&self, term: &mut Terminal) {
+        term.clear();
+
+        // Draw the map
+        for y in 0..self.map.height {
+            for x in 0..self.map.width {
+                let pos = Point::new(x as i32, y as i32);
+                let index = (y * self.map.width + x) as usize;
+                let is_wall = self.map.tiles[index];
+                let is_visible = self.visible[index];
+
+                let (ch, fg, bg) = if pos == self.player_pos {
+                    ('@', Color::YELLOW, Color::BLACK)
+                } else if is_visible {
+                    if is_wall {
+                        ('#', Color::rgb(200, 200, 200), Color::BLACK)
+                    } else {
+                        ('.', Color::rgb(128, 128, 128), Color::BLACK)
+                    }
+                } else {
+                    // Non-visible tiles are very dark
+                    if is_wall {
+                        ('#', Color::rgb(40, 40, 40), Color::BLACK)
+                    } else {
+                        (' ', Color::BLACK, Color::BLACK)
+                    }
+                };
+
+                term.put_char(pos, ch, fg, bg);
+            }
+        }
+
+        // Draw status at the bottom
+        let help_y = self.map.height as i32;
+        term.put_string(
+            Point::new(0, help_y),
+            &format!(
+                "Player position: ({}, {}) | FOV Radius: {}",
+                self.player_pos.x, self.player_pos.y, self.fov_radius
+            ),
+            Color::WHITE,
+            Color::BLACK,
+        );
+    }
+}
+
+fn main() -> io::Result<()> {
+    println!("\n=== Runeforge FOV Demo ===\n");
+    println!("This demo shows the symmetric shadowcasting field-of-view algorithm.");
+    println!("The player (@) can see bright tiles within their FOV radius.");
+    println!("Walls (#) block vision, creating realistic shadows.\n");
+
+    // Set up terminal
+    Terminal::enter_alt_screen()?;
+    Terminal::hide_cursor()?;
+
+    let mut term = Terminal::new(60, 24);
+    let mut game = Game::new();
+
+    // Initial render
+    println!("Scene 1: Initial position");
+    game.render(&mut term);
+    term.present()?;
+    thread::sleep(Duration::from_secs(2));
+
+    // Move right through the gap in the wall
+    println!("\nScene 2: Moving right...");
+    for _ in 0..5 {
+        game.move_player(1, 0);
+        game.render(&mut term);
+        term.present()?;
+        thread::sleep(Duration::from_millis(300));
+    }
+    thread::sleep(Duration::from_secs(1));
+
+    // Move down
+    println!("\nScene 3: Moving down...");
+    for _ in 0..3 {
+        game.move_player(0, 1);
+        game.render(&mut term);
+        term.present()?;
+        thread::sleep(Duration::from_millis(300));
+    }
+    thread::sleep(Duration::from_secs(1));
+
+    // Move right to go through another gap
+    println!("\nScene 4: Moving right to explore...");
+    for _ in 0..10 {
+        game.move_player(1, 0);
+        game.render(&mut term);
+        term.present()?;
+        thread::sleep(Duration::from_millis(300));
+    }
+    thread::sleep(Duration::from_secs(1));
+
+    // Move down toward the pillar
+    println!("\nScene 5: Approaching a pillar - notice how it blocks vision");
+    for _ in 0..3 {
+        game.move_player(0, -1);
+        game.render(&mut term);
+        term.present()?;
+        thread::sleep(Duration::from_millis(300));
+    }
+    thread::sleep(Duration::from_secs(2));
+
+    println!("\nDemo complete! Notice how:");
+    println!("  - Walls block vision and create shadows");
+    println!("  - The FOV updates smoothly as the player moves");
+    println!("  - Symmetric shadowcasting ensures realistic line-of-sight");
+
+    // Cleanup
+    Terminal::show_cursor()?;
+    Terminal::exit_alt_screen()?;
+
+    Ok(())
+}
