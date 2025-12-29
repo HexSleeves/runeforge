@@ -9,7 +9,10 @@ use std::ops::{Add, AddAssign, Sub, SubAssign};
 
 /// A 2D point with integer coordinates.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
-#[cfg_attr(feature = "serialization", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serialization",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct Point {
     /// X coordinate
     pub x: i32,
@@ -180,7 +183,10 @@ impl From<Point> for (i32, i32) {
 
 /// A 2D rectangle with integer coordinates.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serialization", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serialization",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 pub struct Rect {
     /// X coordinate of the top-left corner
     pub x: i32,

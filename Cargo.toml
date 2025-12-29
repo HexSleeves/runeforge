@@ -50,14 +50,14 @@ bytemuck = "1.24.0"
 
 # Text rendering
 ab_glyph    = "0.2"
-cosmic-text = "0.15.0"
-bdf-parser  = "0.1.0"
+cosmic-text = "0.15"
+bdf-parser  = "0.1"
 
 # Images
 image = { version = "0.25", default-features = false, features = ["png"] }
 
 # Algorithms
-pathfinding  = "4.11"
+pathfinding  = "4.14"
 noise        = "0.9"
 bresenham    = "0.1"
 line_drawing = "1.0"
