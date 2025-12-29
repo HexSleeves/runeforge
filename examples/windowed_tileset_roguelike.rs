@@ -11,7 +11,7 @@
 //! - Adjust SCALE_FACTOR constant (line 29) to change window size
 //! - Default is 3x for crisp, pixel-perfect scaling
 //!
-//! Run with: cargo run --example windowed_tileset_roguelike --package runeforge-pixels
+//! Run with: cargo run --example windowed_tileset_roguelike
 
 use pixels::{Pixels, SurfaceTexture};
 use runeforge_color::Color;
@@ -297,7 +297,7 @@ fn main() {
     // Load tileset
     let tileset_path = concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../runeforge-tileset/assets/terminal8x8_gs_ro.png"
+        "/crates/runeforge-tileset/assets/terminal8x8_gs_ro.png"
     );
 
     let tileset = match Tileset::from_file(tileset_path, 8, 8) {
@@ -313,10 +313,8 @@ fn main() {
             eprintln!("✗ Failed to load tileset: {}", e);
             eprintln!();
             eprintln!("Tileset path: {}", tileset_path);
-            eprintln!("Make sure you're running from the workspace root:");
-            eprintln!(
-                "  cargo run --example windowed_tileset_roguelike --package runeforge-pixels"
-            );
+            eprintln!("Make sure you're running from the `runeforge/` directory:");
+            eprintln!("  cargo run --example windowed_tileset_roguelike");
             std::process::exit(1);
         }
     };

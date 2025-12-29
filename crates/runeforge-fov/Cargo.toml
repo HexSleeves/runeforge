@@ -8,13 +8,18 @@ repository.workspace    = true
 documentation.workspace = true
 keywords.workspace      = true
 categories.workspace    = true
+readme.workspace        = true
 description             = "Field-of-view algorithms for the Runeforge roguelike library"
 
 [dependencies]
 runeforge-geometry = { workspace = true }
 
 [dev-dependencies]
-criterion = { workspace = true }
+criterion          = { workspace = true }
+runeforge-geometry = { workspace = true }
+runeforge-terminal = { workspace = true }
+runeforge-color    = { workspace = true }
+
 
 [[bench]]
 name    = "fov_bench"

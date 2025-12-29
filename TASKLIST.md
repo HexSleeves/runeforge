@@ -2,7 +2,7 @@
 
 This document tracks the implementation progress of the Runeforge roguelike library.
 
-**Overall Progress: 14/22 tasks completed (64%)**
+**Overall Progress: 15/23 tasks completed (65%)**
 
 ---
 
@@ -98,9 +98,9 @@ This document tracks the implementation progress of the Runeforge roguelike libr
 
 ## Phase 5: Input & Integration (Weeks 17-20)
 
-**Status: 🔄 PENDING**
+**Status: 🚧 IN PROGRESS**
 
-- [ ] Implement input handling for keyboard and mouse
+- [x] Implement input handling for keyboard and mouse
 - [ ] Create a complete example roguelike game
 - [ ] Add performance profiling and debugging tools
 
@@ -177,6 +177,7 @@ Each phase must meet these criteria before being marked complete:
 - Full 2D geometry primitives
 - Robust random number generation
 - Dice notation parsing
+- ✨ **NEW:** Input system with action mapping (keyboard/mouse)
 - ✨ **NEW:** Symmetric shadowcasting FOV algorithm
 - ✨ **NEW:** Terminal rendering with ANSI escape codes
 - ✨ **NEW:** A* pathfinding with 4-directional and 8-directional movement
@@ -184,6 +185,7 @@ Each phase must meet these criteria before being marked complete:
 
 **Recently Completed:**
 
+- `runeforge-input`: Action-based input handling with vi-keys, numpad, and custom bindings
 - `runeforge-fov`: Symmetric shadowcasting with fraction-based precision
 - `runeforge-terminal`: ANSI terminal renderer with RGB color support
 - `runeforge-pathfinding`: A* algorithm with Manhattan and Chebyshev heuristics
@@ -217,8 +219,8 @@ Each phase must meet these criteria before being marked complete:
 **Next Up:**
 
 - Phase 3: Noise generation and procedural map algorithms (cellular automata, drunkard's walk)
-- Phase 5: Input handling with keyboard and mouse support
-- Phase 6: Complete example roguelike game demonstrating all features
+- Phase 5: Complete example roguelike game demonstrating all features
+- Phase 6: Documentation and Polish
 
 **Target Completion:** 24 weeks from project start
 

@@ -1,20 +1,21 @@
 [package]
-name = "runeforge-geometry"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-repository.workspace = true
+name                    = "runeforge-geometry"
+version.workspace       = true
+edition.workspace       = true
+rust-version.workspace  = true
+license.workspace       = true
+repository.workspace    = true
 documentation.workspace = true
-keywords.workspace = true
-categories.workspace = true
-description = "2D geometric primitives and utilities for the Runeforge roguelike library"
+keywords.workspace      = true
+categories.workspace    = true
+readme.workspace        = true
+description             = "2D geometric primitives and utilities for the Runeforge roguelike library"
 
 [dependencies]
 serde = { workspace = true, optional = true }
 
 [features]
-default = []
+default       = []
 serialization = ["serde"]
 
 [dev-dependencies]

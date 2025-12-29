@@ -1,14 +1,11 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+//! Runeforge - A modern roguelike library for Rust.
+//!
+//! This crate is the main entry point for the Runeforge workspace. It re-exports
+//! the `runeforge-core` facade crate and provides workspace-level examples.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#![warn(clippy::all, clippy::pedantic, clippy::nursery, clippy::cargo)]
+#![warn(clippy::dbg_macro, clippy::todo, clippy::unimplemented)]
+#![allow(clippy::module_name_repetitions)]
+#![allow(clippy::multiple_crate_versions)] // Transitive deps from wgpu/pixels
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use runeforge_core::*;

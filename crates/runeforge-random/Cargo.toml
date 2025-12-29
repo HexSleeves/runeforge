@@ -1,21 +1,22 @@
 [package]
-name = "runeforge-random"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-repository.workspace = true
+name                    = "runeforge-random"
+version.workspace       = true
+edition.workspace       = true
+rust-version.workspace  = true
+license.workspace       = true
+repository.workspace    = true
 documentation.workspace = true
-keywords.workspace = true
-categories.workspace = true
-description = "Random number generation with roguelike-specific utilities for the Runeforge library"
+keywords.workspace      = true
+categories.workspace    = true
+readme.workspace        = true
+description             = "Random number generation with roguelike-specific utilities for the Runeforge library"
 
 [dependencies]
-rand = { workspace = true }
+rand  = { workspace = true }
 serde = { workspace = true, optional = true }
 
 [features]
-default = []
+default       = []
 serialization = ["serde"]
 
 [dev-dependencies]

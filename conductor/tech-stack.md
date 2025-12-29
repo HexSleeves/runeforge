@@ -62,7 +62,6 @@ Runeforge is organized as a Cargo workspace with **15 modular crates**:
 | ---------- | ------- | ------- |
 | **ab_glyph** | 0.2 | TrueType font loading and rasterization |
 | **cosmic-text** | 0.15 | Advanced text layout and shaping |
-| **bdf-parser** | 0.1 | Bitmap Distribution Format (BDF) font parsing |
 
 ### Image Processing
 
@@ -220,7 +219,7 @@ opt-level = 3        # Maximum optimization
 | **Build** | Cargo workspace (15 crates) |
 | **Windowing** | winit 0.30 |
 | **Rendering** | wgpu 28.0, pixels 0.15 |
-| **Fonts** | ab_glyph, bdf-parser |
+| **Fonts** | ab_glyph |
 | **Algorithms** | Native A*/FOV, noise, bresenham |
 | **Utilities** | rand, palette, thiserror |
 | **Testing** | criterion benchmarks |

@@ -50,6 +50,7 @@ struct Fraction {
 
 impl Fraction {
     /// Creates a new fraction.
+    #[inline]
     const fn new(numerator: i32, denominator: i32) -> Self {
         Self {
             numerator,
@@ -58,11 +59,13 @@ impl Fraction {
     }
 
     /// Returns true if self >= other.
+    #[inline]
     fn greater_equal(self, other: Self) -> bool {
         self.numerator * other.denominator >= other.numerator * self.denominator
     }
 
     /// Returns true if self < other.
+    #[inline]
     fn less_than(self, other: Self) -> bool {
         self.numerator * other.denominator < other.numerator * self.denominator
     }
@@ -84,6 +87,7 @@ enum Cardinal {
 
 impl Quadrant {
     /// Transforms relative (row, col) coordinates to absolute map coordinates.
+    #[inline]
     fn transform(self, origin: Point, row: i32, col: i32) -> Point {
         match self.cardinal {
             Cardinal::North => Point::new(origin.x + col, origin.y - row),
@@ -103,6 +107,7 @@ struct Row {
 }
 
 impl Row {
+    #[inline]
     fn new(depth: i32, start_slope: Fraction, end_slope: Fraction) -> Self {
         Self {
             depth,
@@ -111,20 +116,23 @@ impl Row {
         }
     }
 
-    /// Returns the list of tiles in this row.
-    fn tiles(&self) -> Vec<i32> {
-        // Calculate the fractional bounds
+    /// Returns an iterator over the column indices in this row.
+    /// Avoids allocation by returning a range iterator directly.
+    #[inline]
+    fn tiles(&self) -> std::ops::RangeInclusive<i32> {
         let min_col = Self::round_ties_up_frac(self.start_slope, self.depth);
         let max_col = Self::round_ties_down_frac(self.end_slope, self.depth);
-        (min_col..=max_col).collect()
+        min_col..=max_col
     }
 
     /// Returns the next row.
+    #[inline]
     fn next(&self) -> Self {
         Self::new(self.depth + 1, self.start_slope, self.end_slope)
     }
 
     /// Round ties up: floor(fraction * depth + 0.5)
+    #[inline]
     fn round_ties_up_frac(frac: Fraction, depth: i32) -> i32 {
         // floor((num * depth) / den + 0.5) = floor((num * depth + den/2) / den)
         let num = frac.numerator * depth;
@@ -133,6 +141,7 @@ impl Row {
     }
 
     /// Round ties down: ceil(fraction * depth - 0.5)
+    #[inline]
     fn round_ties_down_frac(frac: Fraction, depth: i32) -> i32 {
         // ceil((num * depth) / den - 0.5) = ceil((num * depth - den/2) / den)
         let num = frac.numerator * depth;
@@ -141,17 +150,20 @@ impl Row {
     }
 
     /// Returns the slope from the origin through the left edge of the tile.
+    #[inline]
     fn slope(col: i32, depth: i32) -> Fraction {
         Fraction::new(2 * col - 1, 2 * depth)
     }
 
     /// Returns true if the floor tile is symmetric.
+    #[inline]
     fn is_symmetric(&self, col: i32) -> bool {
         let slope = Fraction::new(col, self.depth);
         slope.greater_equal(self.start_slope) && slope.less_than(self.end_slope)
     }
 
     /// Returns true if the wall tile is visible.
+    #[inline]
     fn is_wall_visible(&self, col: i32) -> bool {
         let slope = Self::slope(col, self.depth);
         let adj_start = Fraction::new(
@@ -208,7 +220,10 @@ where
     // Mark the origin as visible
     mark_visible(origin);
 
-    // Scan each quadrant
+    // Pre-calculate squared radius for distance checks
+    let max_radius_squared = max_radius * max_radius;
+
+    // Scan each quadrant using an iterative approach with an explicit stack
     for cardinal in [
         Cardinal::North,
         Cardinal::South,
@@ -216,91 +231,62 @@ where
         Cardinal::West,
     ] {
         let quadrant = Quadrant { cardinal };
-        let first_row = Row::new(1, Fraction::new(-1, 1), Fraction::new(1, 1));
 
-        scan(
-            origin,
-            max_radius,
-            first_row,
-            quadrant,
-            is_blocking,
-            mark_visible,
-        );
-    }
-}
+        // Use a Vec as an explicit stack to avoid recursion overhead
+        // Capacity hint based on expected maximum depth
+        let mut rows: Vec<Row> = Vec::with_capacity(max_radius.min(64) as usize);
+        rows.push(Row::new(1, Fraction::new(-1, 1), Fraction::new(1, 1)));
 
-/// Scans a single row in a quadrant.
-fn scan<F, G>(
-    origin: Point,
-    max_radius: i32,
-    row: Row,
-    quadrant: Quadrant,
-    is_blocking: &F,
-    mark_visible: &mut G,
-) where
-    F: Fn(Point) -> bool,
-    G: FnMut(Point),
-{
-    if row.depth > max_radius {
-        return;
-    }
+        while let Some(row) = rows.pop() {
+            if row.depth > max_radius {
+                continue;
+            }
 
-    let mut prev_tile_blocking = None;
-    let tiles = row.tiles();
+            let mut prev_tile_blocking: Option<bool> = None;
 
-    for col in tiles {
-        let tile = quadrant.transform(origin, row.depth, col);
-        let tile_blocking = is_blocking(tile);
+            for col in row.tiles() {
+                let tile = quadrant.transform(origin, row.depth, col);
 
-        // Walls use is_wall_visible, floors use is_symmetric
-        if (tile_blocking && row.is_wall_visible(col)) || (!tile_blocking && row.is_symmetric(col))
-        {
-            mark_visible(tile);
-        }
+                // Early distance check using squared distance to avoid sqrt
+                let dx = tile.x - origin.x;
+                let dy = tile.y - origin.y;
+                if dx * dx + dy * dy > max_radius_squared {
+                    continue;
+                }
 
-        // Handle transitions between blocking and non-blocking tiles
-        if let Some(prev_blocking) = prev_tile_blocking {
-            if prev_blocking && !tile_blocking {
-                // Transition from wall to floor - start new slope
-                let mut new_row = row.next();
-                new_row.start_slope = Row::slope(col, new_row.depth);
-                scan(
-                    origin,
-                    max_radius,
-                    new_row,
-                    quadrant,
-                    is_blocking,
-                    mark_visible,
-                );
-            } else if !prev_blocking && tile_blocking {
-                // Transition from floor to wall - end current slope
-                let mut next_row = row.next();
-                next_row.end_slope = Row::slope(col, next_row.depth);
-                scan(
-                    origin,
-                    max_radius,
-                    next_row,
-                    quadrant,
-                    is_blocking,
-                    mark_visible,
-                );
-                return;
+                let tile_blocking = is_blocking(tile);
+
+                // Walls use is_wall_visible, floors use is_symmetric
+                if (tile_blocking && row.is_wall_visible(col))
+                    || (!tile_blocking && row.is_symmetric(col))
+                {
+                    mark_visible(tile);
+                }
+
+                // Handle transitions between blocking and non-blocking tiles
+                if let Some(prev_blocking) = prev_tile_blocking {
+                    if prev_blocking && !tile_blocking {
+                        // Transition from wall to floor - start new slope
+                        let mut new_row = row.next();
+                        new_row.start_slope = Row::slope(col, new_row.depth);
+                        rows.push(new_row);
+                    } else if !prev_blocking && tile_blocking {
+                        // Transition from floor to wall - end current slope
+                        let mut next_row = row.next();
+                        next_row.end_slope = Row::slope(col, next_row.depth);
+                        rows.push(next_row);
+                        break;
+                    }
+                }
+
+                prev_tile_blocking = Some(tile_blocking);
+            }
+
+            // Continue to next row if we didn't end on a blocking tile
+            if prev_tile_blocking == Some(false) {
+                rows.push(row.next());
             }
         }
-
-        prev_tile_blocking = Some(tile_blocking);
-    }
-
-    // Continue to next row if we didn't end on a blocking tile
-    if let Some(false) = prev_tile_blocking {
-        scan(
-            origin,
-            max_radius,
-            row.next(),
-            quadrant,
-            is_blocking,
-            mark_visible,
-        );
     }
 }
 
@@ -327,12 +313,41 @@ where
     let radius_squared = radius * radius;
 
     for dy in -radius..=radius {
-        for dx in -radius..=radius {
-            if dx * dx + dy * dy <= radius_squared {
-                mark_visible(Point::new(origin.x + dx, origin.y + dy));
-            }
+        // Calculate the maximum dx for this row based on the circle equation
+        // This avoids checking tiles that are guaranteed to be outside the circle
+        let dy_squared = dy * dy;
+        let max_dx_squared = radius_squared - dy_squared;
+
+        // Use integer sqrt approximation to get exact bounds
+        // This is faster than checking every tile in the row
+        let max_dx = isqrt(max_dx_squared);
+
+        for dx in -max_dx..=max_dx {
+            mark_visible(Point::new(origin.x + dx, origin.y + dy));
         }
     }
+}
+
+/// Integer square root using Newton's method.
+/// Returns the largest integer n such that n*n <= x.
+#[inline]
+fn isqrt(x: i32) -> i32 {
+    if x <= 0 {
+        return 0;
+    }
+    if x == 1 {
+        return 1;
+    }
+
+    let mut guess = x;
+    let mut result = (guess + 1) / 2;
+
+    while result < guess {
+        guess = result;
+        result = (guess + x / guess) / 2;
+    }
+
+    guess
 }
 
 #[cfg(test)]
@@ -406,9 +421,48 @@ mod tests {
     #[test]
     fn test_row_tiles() {
         let row = Row::new(5, Fraction::new(-1, 1), Fraction::new(1, 1));
-        let tiles = row.tiles();
+        let tiles: Vec<_> = row.tiles().collect();
 
         assert!(!tiles.is_empty());
         assert!(tiles.contains(&0)); // Center tile should always be included
+    }
+
+    #[test]
+    fn test_isqrt() {
+        assert_eq!(isqrt(0), 0);
+        assert_eq!(isqrt(1), 1);
+        assert_eq!(isqrt(4), 2);
+        assert_eq!(isqrt(9), 3);
+        assert_eq!(isqrt(10), 3); // floor(sqrt(10)) = 3
+        assert_eq!(isqrt(15), 3);
+        assert_eq!(isqrt(16), 4);
+        assert_eq!(isqrt(100), 10);
+    }
+
+    #[test]
+    fn test_fov_circle_bounds() {
+        // Verify that compute_fov_circle produces correct circular bounds
+        let origin = Point::new(0, 0);
+        let radius = 5;
+        let mut visible = Vec::new();
+
+        compute_fov_circle(origin, radius, &mut |p| visible.push(p));
+
+        // All visible points should be within radius
+        for p in &visible {
+            let dist_sq = (p.x - origin.x).pow(2) + (p.y - origin.y).pow(2);
+            assert!(
+                dist_sq <= radius * radius,
+                "Point {:?} is outside radius {}",
+                p,
+                radius
+            );
+        }
+
+        // Cardinal directions at exact radius should be visible
+        assert!(visible.contains(&Point::new(5, 0)));
+        assert!(visible.contains(&Point::new(-5, 0)));
+        assert!(visible.contains(&Point::new(0, 5)));
+        assert!(visible.contains(&Point::new(0, -5)));
     }
 }

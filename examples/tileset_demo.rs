@@ -6,7 +6,7 @@
 //! - Use CP437 character mapping for classic roguelike tilesets
 //! - Get UV coordinates for GPU rendering
 //!
-//! Run with: cargo run -p runeforge-tileset --example tileset_demo
+//! Run with: cargo run --example tileset_demo
 
 use runeforge_tileset::{cp437_to_char, Tileset};
 
@@ -14,7 +14,7 @@ fn main() {
     println!("=== Runeforge Tileset Demo ===\n");
 
     // Load the 8x8 terminal tileset
-    let tileset_path = concat!(env!("CARGO_MANIFEST_DIR"), "/assets/terminal8x8_gs_ro.png");
+    let tileset_path = "crates/runeforge-tileset/assets/terminal8x8_gs_ro.png";
     let tileset = Tileset::from_file(tileset_path, 8, 8).expect("Failed to load tileset");
 
     println!("Tileset loaded: {}", tileset_path);
@@ -127,7 +127,7 @@ fn main() {
     // Also demo the 16x16 tileset
     println!("\n--- Loading 16x16 tileset ---\n");
 
-    let tileset16_path = concat!(env!("CARGO_MANIFEST_DIR"), "/assets/dejavu16x16_gs_tc.png");
+    let tileset16_path = "crates/runeforge-tileset/assets/dejavu16x16_gs_tc.png";
 
     if let Ok(tileset16) = Tileset::from_file(tileset16_path, 16, 16) {
         println!("Tileset loaded: dejavu16x16_gs_tc.png");

@@ -6,7 +6,7 @@
 //! - Access glyph metrics and UV coordinates
 //! - Render characters to buffers
 //!
-//! Run with: cargo run -p runeforge-tileset --example font_atlas_demo
+//! Run with: cargo run --example font_atlas_demo
 
 use runeforge_color::Color;
 use runeforge_tileset::{Font, GlyphAtlas};

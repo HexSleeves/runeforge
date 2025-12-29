@@ -1,22 +1,23 @@
 [package]
-name = "runeforge-color"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-repository.workspace = true
+name                    = "runeforge-color"
+version.workspace       = true
+edition.workspace       = true
+rust-version.workspace  = true
+license.workspace       = true
+repository.workspace    = true
 documentation.workspace = true
-keywords.workspace = true
-categories.workspace = true
-description = "Color manipulation and conversion for the Runeforge roguelike library"
+keywords.workspace      = true
+categories.workspace    = true
+readme.workspace        = true
+description             = "Color manipulation and conversion for the Runeforge roguelike library"
 
 [dependencies]
 palette = { workspace = true, optional = true }
-serde = { workspace = true, optional = true }
+serde   = { workspace = true, optional = true }
 
 [features]
-default = []
+default             = []
 palette_integration = ["palette"]
-serialization = ["serde"]
+serialization       = ["serde"]
 
 [dev-dependencies]

@@ -3,7 +3,7 @@
 //! This demonstrates loading a CP437 tileset PNG (16x16 grid of glyphs) and
 //! extracting individual tiles for use in rendering.
 //!
-//! Run with: cargo run --example png_tileset_demo --package runeforge-tileset
+//! Run with: cargo run --example png_tileset_demo
 
 use runeforge_tileset::Tileset;
 
@@ -23,8 +23,8 @@ fn main() {
         }
         Err(e) => {
             eprintln!("✗ Failed to load tileset: {}", e);
-            eprintln!("\nMake sure you're running from the workspace root:");
-            eprintln!("  cargo run --example png_tileset_demo --package runeforge-tileset");
+            eprintln!("\nMake sure you're running from the `runeforge/` directory:");
+            eprintln!("  cargo run --example png_tileset_demo");
             std::process::exit(1);
         }
     };

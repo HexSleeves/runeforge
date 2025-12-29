@@ -659,18 +659,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "deprecate-until"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a3767f826efbbe5a5ae093920b58b43b01734202be697e1354914e862e8e704"
-dependencies = [
- "proc-macro2",
- "quote",
- "semver",
- "syn 2.0.111",
-]
-
-[[package]]
 name = "dispatch"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1064,15 +1052,6 @@ checksum = "0ad4bb2b565bca0645f4d68c5c9af97fba094e9791da685bf83cb5f3ce74acf2"
 dependencies = [
  "equivalent",
  "hashbrown 0.16.1",
-]
-
-[[package]]
-name = "integer-sqrt"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "276ec31bcb4a9ee45f58bec6f9ec700ae4cf4f4f8f2fa7e06cb406bd5ffdd770"
-dependencies = [
- "num-traits",
 ]
 
 [[package]]
@@ -1793,20 +1772,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
-name = "pathfinding"
-version = "4.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59ac35caa284c08f3721fb33c2741b5f763decaf42d080c8a6a722154347017e"
-dependencies = [
- "deprecate-until",
- "indexmap",
- "integer-sqrt",
- "num-traits",
- "rustc-hash 2.1.1",
- "thiserror 2.0.17",
-]
-
-[[package]]
 name = "percent-encoding"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2208,6 +2173,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "19b30a45b0cd0bcca8037f3d0dc3421eaf95327a17cad11964fb8179b4fc4832"
 
 [[package]]
+name = "runeforge"
+version = "0.1.0"
+dependencies = [
+ "pixels",
+ "runeforge-algorithms",
+ "runeforge-bsp",
+ "runeforge-color",
+ "runeforge-console",
+ "runeforge-core",
+ "runeforge-fov",
+ "runeforge-geometry",
+ "runeforge-input",
+ "runeforge-pathfinding",
+ "runeforge-pixels",
+ "runeforge-random",
+ "runeforge-software",
+ "runeforge-terminal",
+ "runeforge-tileset",
+ "winit",
+]
+
+[[package]]
 name = "runeforge-algorithms"
 version = "0.1.0"
 dependencies = [
@@ -2264,7 +2251,9 @@ name = "runeforge-fov"
 version = "0.1.0"
 dependencies = [
  "criterion",
+ "runeforge-color",
  "runeforge-geometry",
+ "runeforge-terminal",
 ]
 
 [[package]]
@@ -2293,9 +2282,9 @@ name = "runeforge-pathfinding"
 version = "0.1.0"
 dependencies = [
  "criterion",
- "pathfinding",
- "runeforge-color",
  "runeforge-geometry",
+ "rustc-hash 2.1.1",
+ "smallvec",
 ]
 
 [[package]]
@@ -2337,7 +2326,6 @@ dependencies = [
  "bytemuck",
  "pixels",
  "runeforge-color",
- "runeforge-fov",
  "runeforge-geometry",
  "runeforge-tileset",
  "thiserror 2.0.17",
@@ -2448,12 +2436,6 @@ dependencies = [
  "smithay-client-toolkit",
  "tiny-skia",
 ]
-
-[[package]]
-name = "semver"
-version = "1.0.27"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d767eb0aabc880b29956c35734170f26ed551a859dbd361d140cdbeca61ab1e2"
 
 [[package]]
 name = "serde"

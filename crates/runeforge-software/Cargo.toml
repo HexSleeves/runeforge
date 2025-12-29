@@ -8,6 +8,7 @@ repository.workspace    = true
 documentation.workspace = true
 keywords.workspace      = true
 categories.workspace    = true
+readme.workspace        = true
 description             = "CPU-based software rendering backend for Runeforge"
 
 [dependencies]

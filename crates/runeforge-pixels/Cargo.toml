@@ -9,6 +9,7 @@ documentation.workspace = true
 keywords.workspace      = true
 categories.workspace    = true
 description             = "GPU-accelerated rendering backend for Runeforge using pixels/wgpu"
+readme                  = "README.md"
 
 [dependencies]
 runeforge-color    = { workspace = true }

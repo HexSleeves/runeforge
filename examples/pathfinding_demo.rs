@@ -143,7 +143,7 @@ fn main() -> io::Result<()> {
     println!("Finding path from @ to X...");
     thread::sleep(Duration::from_secs(1));
 
-    let path1 = astar(start1, goal1, &|p| map.is_walkable(p));
+    let path1 = astar(start1, goal1, &|p| map.is_walkable(p), None);
     render_map(&map, path1.as_ref(), start1, goal1);
     if let Some(p) = &path1 {
         println!("Path found! Length: {} steps", p.len());
@@ -159,7 +159,7 @@ fn main() -> io::Result<()> {
     println!("Finding path around the wall...");
     thread::sleep(Duration::from_secs(1));
 
-    let path2 = astar(start2, goal2, &|p| map.is_walkable(p));
+    let path2 = astar(start2, goal2, &|p| map.is_walkable(p), None);
     render_map(&map, path2.as_ref(), start2, goal2);
     if let Some(p) = &path2 {
         println!("Path found! Length: {} steps", p.len());
@@ -176,7 +176,7 @@ fn main() -> io::Result<()> {
     println!("Finding path through the complex maze...");
     thread::sleep(Duration::from_secs(1));
 
-    let path3 = astar(start3, goal3, &|p| map.is_walkable(p));
+    let path3 = astar(start3, goal3, &|p| map.is_walkable(p), None);
     render_map(&map, path3.as_ref(), start3, goal3);
     if let Some(p) = &path3 {
         println!("Path found! Length: {} steps", p.len());
@@ -193,7 +193,7 @@ fn main() -> io::Result<()> {
     println!("4-directional path (cardinal directions only)...");
     thread::sleep(Duration::from_secs(1));
 
-    let path4_4dir = astar(start4, goal4, &|p| map.is_walkable(p));
+    let path4_4dir = astar(start4, goal4, &|p| map.is_walkable(p), None);
     render_map(&map, path4_4dir.as_ref(), start4, goal4);
     if let Some(p) = &path4_4dir {
         println!("4-directional path length: {} steps", p.len());
@@ -203,7 +203,7 @@ fn main() -> io::Result<()> {
     println!("\nNow trying 8-directional (with diagonals)...");
     thread::sleep(Duration::from_secs(1));
 
-    let path4_8dir = astar_8dir(start4, goal4, &|p| map.is_walkable(p));
+    let path4_8dir = astar_8dir(start4, goal4, &|p| map.is_walkable(p), None);
     render_map(&map, path4_8dir.as_ref(), start4, goal4);
     if let Some(p) = &path4_8dir {
         println!("8-directional path length: {} steps", p.len());
@@ -225,7 +225,7 @@ fn main() -> io::Result<()> {
     println!("Trying to find a path to an unreachable location...");
     thread::sleep(Duration::from_secs(1));
 
-    let path5 = astar(start5, goal5, &|p| map.is_walkable(p));
+    let path5 = astar(start5, goal5, &|p| map.is_walkable(p), None);
     render_map(&map, path5.as_ref(), start5, goal5);
     if path5.is_none() {
         println!("No path found! A* correctly identified this goal is unreachable.");

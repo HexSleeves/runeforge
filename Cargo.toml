@@ -1,3 +1,19 @@
+[package]
+name                    = "runeforge"
+version.workspace       = true
+edition.workspace       = true
+rust-version.workspace  = true
+license.workspace       = true
+repository.workspace    = true
+homepage.workspace      = true
+documentation.workspace = true
+keywords.workspace      = true
+categories.workspace    = true
+description             = "Main Runeforge crate (facade + examples)"
+
+[lib]
+path = "src/lib.rs"
+
 [workspace]
 resolver = "2"
 members = [
@@ -26,11 +42,13 @@ license       = "BSD-3-Clause"
 repository    = "https://github.com/yourusername/runeforge"
 homepage      = "https://runeforge.rs"
 documentation = "https://docs.rs/runeforge"
+readme        = "README.md"
 keywords      = ["roguelike", "gamedev", "terminal", "ascii"]
 categories    = ["game-development", "graphics", "algorithms"]
 
 [workspace.dependencies]
 # Internal crates
+runeforge-core        = { path = "crates/runeforge-core", version = "0.1.0" }
 runeforge-color       = { path = "crates/runeforge-color", version = "0.1.0" }
 runeforge-geometry    = { path = "crates/runeforge-geometry", version = "0.1.0" }
 runeforge-noise       = { path = "crates/runeforge-noise", version = "0.1.0" }
@@ -73,6 +91,10 @@ rand    = "0.9"
 palette = "0.7"
 flate2  = "1.1"
 
+# Performance optimizations
+rustc-hash = "2.0"  # Faster HashMap for integer keys
+smallvec   = "1.13" # Stack-allocated small vectors
+
 # Serialization (optional)
 serde = { version = "1.0", features = ["derive"] }
 
@@ -86,10 +108,41 @@ log = "0.4"
 # Testing
 criterion = "0.8"
 
+[dependencies]
+runeforge-core = { workspace = true }
+
+[dev-dependencies]
+runeforge-algorithms  = { workspace = true }
+runeforge-bsp         = { workspace = true }
+runeforge-color       = { workspace = true }
+runeforge-console     = { workspace = true }
+runeforge-fov         = { workspace = true }
+runeforge-geometry    = { workspace = true }
+runeforge-input       = { workspace = true }
+runeforge-pathfinding = { workspace = true }
+runeforge-pixels      = { workspace = true }
+runeforge-random      = { workspace = true }
+runeforge-software    = { workspace = true }
+runeforge-terminal    = { workspace = true }
+runeforge-tileset     = { workspace = true }
+
+pixels = { workspace = true }
+winit  = { workspace = true }
+
 [profile.dev]
 opt-level = 1 # Faster debug builds
+debug     = 1 # Reduced debug info for faster compilation
+
+[profile.dev.package."*"]
+# Optimize dependencies even in debug mode
+opt-level = 3
 
 [profile.release]
-lto           = true
+lto           = "thin" # Faster than "fat", still good optimization
 codegen-units = 1
 opt-level     = 3
+strip         = true   # Remove debug symbols for smaller binaries
+
+[profile.bench]
+inherits = "release"
+lto      = "fat"     # Maximum optimization for benchmarks

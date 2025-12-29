@@ -1,18 +1,19 @@
 [package]
-name = "runeforge-algorithms"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-repository.workspace = true
+name                    = "runeforge-algorithms"
+version.workspace       = true
+edition.workspace       = true
+rust-version.workspace  = true
+license.workspace       = true
+repository.workspace    = true
 documentation.workspace = true
-keywords.workspace = true
-categories.workspace = true
-description = "Miscellaneous algorithms for the Runeforge roguelike library"
+keywords.workspace      = true
+categories.workspace    = true
+readme.workspace        = true
+description             = "Miscellaneous algorithms for the Runeforge roguelike library"
 
 [dependencies]
 runeforge-geometry = { workspace = true }
-bresenham = { workspace = true }
-line_drawing = { workspace = true }
+bresenham          = { workspace = true }
+line_drawing       = { workspace = true }
 
 [dev-dependencies]

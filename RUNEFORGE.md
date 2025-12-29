@@ -80,7 +80,7 @@
 #### Window & Input Management
 
 | libtcod | Rust Equivalent | Notes |
-|---------|-----------------|-------|
+| --------- | ----------------- | ------- |
 | SDL2/SDL3 | **[winit](https://github.com/rust-windowing/winit)** | Pure Rust, cross-platform window management |
 | Mouse handling | winit events | Built into winit |
 | Keyboard handling | winit events | Built into winit |
@@ -88,7 +88,7 @@
 #### Graphics Rendering
 
 | libtcod | Rust Equivalent | Notes |
-|---------|-----------------|-------|
+| --------- | ----------------- | ------- |
 | SDL2 renderer | **[wgpu](https://wgpu.rs/)** + **[pixels](https://lib.rs/crates/pixels)** or **softbuffer** | Modern GPU-accelerated rendering |
 | Terminal rendering | Custom implementation | Render to texture/framebuffer |
 | OpenGL backend | wgpu (Vulkan/Metal/DX12/GL) | wgpu supports multiple backends |
@@ -96,15 +96,14 @@
 #### Text & Font Rendering
 
 | libtcod | Rust Equivalent | Notes |
-|---------|-----------------|-------|
+| --------- | ----------------- | ------- |
 | stb_truetype | **[ab_glyph](https://lib.rs/crates/ab_glyph)** or **[cosmic-text](https://github.com/pop-os/cosmic-text)** | ab_glyph for simple, cosmic-text for advanced |
-| BDF fonts | **[bdf-parser](https://crates.io/crates/bdf-parser)** | Parse BDF bitmap fonts |
 | Unicode support (utf8proc) | Built-in Rust `char`/`String` | Rust has native UTF-8 support |
 
 #### Image Processing
 
 | libtcod | Rust Equivalent | Notes |
-|---------|-----------------|-------|
+| --------- | ----------------- | ------- |
 | lodepng | **[image](https://crates.io/crates/image)** crate | Supports PNG, JPEG, and many formats |
 | stb_image | image crate | More comprehensive than stb |
 | REXPaint files | Custom parser or port | Could port libtcod's implementation |
@@ -112,7 +111,7 @@
 #### Algorithms & Utilities
 
 | libtcod | Rust Equivalent | Notes |
-|---------|-----------------|-------|
+| --------- | ----------------- | ------- |
 | Pathfinding (A*, Dijkstra) | **[pathfinding](https://crates.io/crates/pathfinding)** | Complete pathfinding library |
 | Noise generation | **[noise-rs](https://github.com/Razaekel/noise-rs)** or **[bracket-noise](https://lib.rs/crates/bracket-noise)** | Perlin, simplex, and more |
 | Random (Mersenne Twister) | **[rand](https://crates.io/crates/rand)** | Industry-standard RNG |
@@ -125,7 +124,7 @@
 #### Compression & Serialization
 
 | libtcod | Rust Equivalent | Notes |
-|---------|-----------------|-------|
+| --------- | ----------------- | ------- |
 | zlib | **[flate2](https://crates.io/crates/flate2)** | Comprehensive compression library |
 | ZIP archives | **[zip](https://crates.io/crates/zip)** | Read/write ZIP files |
 
@@ -137,7 +136,7 @@
 
 Following the **modular monorepo** approach inspired by [bracket-lib](https://github.com/amethyst/bracket-lib):
 
-```
+```bash
 runeforge/
 ├── Cargo.toml                 # Workspace configuration
 ├── RUNEFORGE.md              # This document
@@ -167,7 +166,7 @@ runeforge/
 
 ### Crate Dependency Graph
 
-```
+```bash
 runeforge-core (facade)
 ├── runeforge-color
 ├── runeforge-geometry
@@ -901,7 +900,6 @@ bytemuck = "1.14"
 # Text rendering
 ab_glyph = "0.2"
 cosmic-text = "0.14"
-bdf-parser = "0.3"
 
 # Images
 image = { version = "0.25", default-features = false, features = ["png"] }
@@ -986,7 +984,7 @@ criterion = "0.5"
 **Runeforge aims to combine the best of all worlds:**
 
 | Feature | tcod-rs | bracket-lib | doryen-rs | **Runeforge** |
-|---------|---------|-------------|-----------|---------------|
+| --------- | --------- | ------------- | ----------- | --------------- |
 | Pure Rust | ❌ | ✅ | ✅ | ✅ |
 | libtcod API | ✅ | ❌ | ❌ | ✅ |
 | Modern Graphics | ❌ | ✅ | ✅ | ✅ |
@@ -1187,7 +1185,7 @@ This allows commercial use, modification, and distribution with minimal restrict
 ### Current Status: Phase 1 (Foundation)
 
 | Crate | Status | Completion |
-|-------|--------|------------|
+| ----- | ------ | ---------- |
 | runeforge-color | 🔄 In Progress | 0% |
 | runeforge-geometry | 📋 Planned | 0% |
 | runeforge-random | 📋 Planned | 0% |
@@ -1204,5 +1202,3 @@ This allows commercial use, modification, and distribution with minimal restrict
 ### Overall Progress: 5%
 
 ---
-
-*Last Updated: December 27, 2025*

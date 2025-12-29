@@ -1,6 +1,6 @@
 # Runeforge 🔥⚔️
 
-**A modern, modular roguelike library for Rust**
+## A modern, modular roguelike library for Rust
 
 [![Crates.io](https://img.shields.io/crates/v/runeforge)](https://crates.io/crates/runeforge)
 [![Documentation](https://docs.rs/runeforge/badge.svg)](https://docs.rs/runeforge)
@@ -56,14 +56,17 @@ Runeforge is organized as a modular workspace:
 | `runeforge-color` | RGB/HSV color manipulation | ✅ Complete |
 | `runeforge-geometry` | 2D primitives (Point, Rect) | ✅ Complete |
 | `runeforge-random` | RNG with dice notation | ✅ Complete |
-| `runeforge-fov` | Field-of-view algorithms | 📋 Planned (Phase 2) |
-| `runeforge-pathfinding` | A* and Dijkstra pathfinding | 📋 Planned (Phase 2) |
+| `runeforge-fov` | Field-of-view algorithms | ✅ Complete |
+| `runeforge-pathfinding` | A* and Dijkstra pathfinding | ✅ Complete |
+| `runeforge-bsp` | Binary space partitioning | ✅ Complete |
+| `runeforge-terminal` | Console rendering (CPU/GPU) | ✅ Complete |
+| `runeforge-tileset` | Font and tileset loading | ✅ Complete |
+| `runeforge-input` | Keyboard and mouse input | ✅ Complete |
+| `runeforge-pixels` | GPU backend using `pixels` | ✅ Complete |
+| `runeforge-software` | CPU backend (software rendering) | ✅ Complete |
+| `runeforge-console` | Abstract console trait | ✅ Complete |
 | `runeforge-noise` | Procedural noise generation | 📋 Planned (Phase 3) |
-| `runeforge-bsp` | Binary space partitioning | 📋 Planned (Phase 3) |
-| `runeforge-algorithms` | Line drawing, flood fill, etc. | 📋 Planned (Phase 2) |
-| `runeforge-terminal` | Console rendering (CPU/GPU) | 📋 Planned (Phase 1-4) |
-| `runeforge-tileset` | Font and tileset loading | 📋 Planned (Phase 4) |
-| `runeforge-input` | Keyboard and mouse input | 📋 Planned (Phase 5) |
+| `runeforge-algorithms` | Line drawing, flood fill, etc. | 📋 Planned (Phase 3) |
 
 ## 🎨 Features
 
@@ -72,36 +75,50 @@ Runeforge is organized as a modular workspace:
 - ✅ **Color System**: RGB/HSV conversion, blending, named colors
 - ✅ **Geometry**: Point and Rect types with distance calculations
 - ✅ **Random Numbers**: Dice notation parsing (`3d6+2`), weighted selection
+- ✅ **FOV Algorithms**: Symmetric shadowcasting with precise fraction-based calculation
+- ✅ **Pathfinding**: A* algorithm with 4-way and 8-way movement
+- ✅ **Procedural Generation**: BSP dungeon generation (rooms and corridors)
+- ✅ **Rendering**: 
+  - Abstract `Console` trait for backend-agnostic code
+  - GPU-accelerated backend (wgpu/pixels)
+  - Software backend (CPU buffer, PNG export)
+  - Terminal backend (ANSI escape codes, truecolor)
+- ✅ **Tilesets**: Support for TrueType/OpenType fonts and bitmap tilesets
+- ✅ **Input**: Action-based input mapping (keyboard/mouse) with support for vi-keys, WASD, arrows
 
 ### Planned Features
 
-- 🔨 **FOV Algorithms**: Shadowcasting, raycasting, and more (Phase 2)
-- 🔨 **Pathfinding**: A*, Dijkstra maps (Phase 2)
-- 🔨 **Procedural Generation**: Noise, BSP, cellular automata (Phase 3)
-- 🔨 **Rendering**: GPU-accelerated console with multiple backends (Phase 1-4)
-- 🔨 **Input Handling**: Keyboard and mouse events (Phase 5)
+- 🔨 **Procedural Generation**: Noise (Perlin/Simplex), cellular automata (Phase 3)
+- 🔨 **Algorithms**: Line drawing, flood fill (Phase 3)
+- 🔨 **Advanced Input**: Gestures, gamepad support (Phase 5)
+- 🔨 **UI Framework**: Widgets, layouts (Future)
 
 ## 📚 Examples
 
 Check out the `examples/` directory for complete examples:
 
 ```bash
-cargo run --example dice_roller
-cargo run --example color_blending
-cargo run --example geometry_demo
+cargo run --example hello_terminal
+cargo run --example roguelike_demo
+cargo run --example windowed_roguelike
+cargo run --example fov_demo
+cargo run --example pathfinding_demo
+cargo run --example bsp_demo
 ```
 
 ## 🔧 Development Status
 
-Runeforge is currently in **Phase 1** of development. See [RUNEFORGE.md](RUNEFORGE.md) for the complete roadmap and implementation plan.
+Runeforge is currently in **Phase 5** of development (Input & Integration). See [RUNEFORGE.md](RUNEFORGE.md) for the complete roadmap.
 
-### Current Progress: ~5%
+### Current Progress: ~70%
 
 - ✅ Project structure and workspace setup
 - ✅ Core crates: color, geometry, random
-- 🔨 Rendering system (in progress)
-- 📋 Algorithms and utilities (planned)
-- 📋 Advanced features (planned)
+- ✅ Core Algorithms: FOV, Pathfinding, BSP
+- ✅ Rendering system: GPU, Software, Terminal backends
+- ✅ Input system: Action mapping, keyboard/mouse
+- 🔨 Procedural Generation: Noise, advanced map gen (Next)
+- 📋 Example Game: Complete roguelike integration (In Progress)
 
 ## 🤝 Contributing
 
@@ -109,8 +126,8 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ### Areas Where Help Is Needed
 
-- Algorithm implementations (FOV, pathfinding)
-- Renderer backends (wgpu, software)
+- Algorithm implementations (Noise, Line drawing)
+- Advanced map generation (Cellular Automata, Drunkard's Walk)
 - Documentation and tutorials
 - Example roguelikes
 - Testing and benchmarks
@@ -124,24 +141,33 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## 🗺️ Roadmap
 
-### Version 0.1 (Current) - Foundation
+### Version 0.1 (Foundation) - Completed
+
 - ✅ Workspace structure
 - ✅ Color, geometry, random crates
-- 🔨 Basic documentation
+- ✅ Basic documentation
 
-### Version 0.2 - Core Algorithms
-- FOV algorithms
-- Pathfinding
-- Line drawing
+### Version 0.2 (Algorithms) - Completed
 
-### Version 0.3 - Procedural Generation
+- ✅ FOV algorithms
+- ✅ Pathfinding
+- ✅ BSP trees
+
+### Version 0.3 (Rendering & Input) - Completed
+
+- ✅ Rendering backends (GPU, Soft, Term)
+- ✅ Tileset/Font loading
+- ✅ Input handling
+
+### Version 0.4 (Procedural Gen) - Planned
+
 - Noise generation
-- BSP trees
-- Map generation
+- Advanced map generation
+- Line drawing / Geom utils
 
-### Version 1.0 - Full Release
-- Complete rendering system
-- All algorithms implemented
+### Version 1.0 (Full Release)
+
+- Complete example game
 - Comprehensive documentation
 - Tutorial and examples
 

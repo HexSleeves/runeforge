@@ -11,7 +11,7 @@
 //! - Adjust SCALE_FACTOR constant (line 26) to change window size
 //! - Default is 3x for crisp, pixel-perfect scaling
 //!
-//! Run with: cargo run --example windowed_roguelike --package runeforge-pixels
+//! Run with: cargo run --example windowed_roguelike
 
 use pixels::{Pixels, SurfaceTexture};
 use runeforge_color::Color;
@@ -211,10 +211,11 @@ impl ApplicationHandler for Game {
                 event_loop.exit();
             }
             WindowEvent::KeyboardInput {
-                event: key_event @ KeyEvent {
-                    state: ElementState::Pressed,
-                    ..
-                },
+                event:
+                    key_event @ KeyEvent {
+                        state: ElementState::Pressed,
+                        ..
+                    },
                 ..
             } => {
                 // Map physical key to virtual keys using input system
@@ -284,7 +285,7 @@ fn main() {
     // Load font
     let font_path = concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../runeforge-software/assets/font.ttf"
+        "/crates/runeforge-software/assets/font.ttf"
     );
 
     let font_data = match std::fs::read(font_path) {

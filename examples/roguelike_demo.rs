@@ -8,7 +8,7 @@
 //! - CascadiaCode.ttf
 //! - FiraCode.ttf
 //!
-//! Run with: cargo run --example roguelike_demo --package runeforge-software
+//! Run with: cargo run --example roguelike_demo
 
 use runeforge_color::Color;
 use runeforge_console::Console;
@@ -21,7 +21,10 @@ fn main() {
     println!("================================");
 
     // Try to load a font (you'll need to have one available)
-    let font_path = concat!(env!("CARGO_MANIFEST_DIR"), "/assets/font.ttf"); // Adjust this path as needed
+    let font_path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/crates/runeforge-software/assets/font.ttf"
+    );
 
     let font_data = match std::fs::read(font_path) {
         Ok(data) => data,

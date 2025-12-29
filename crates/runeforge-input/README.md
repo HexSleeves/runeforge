@@ -34,7 +34,7 @@ The default input map (`InputMap::roguelike_default()`) supports all these schem
 
 ### Vi-Keys (8-directional)
 
-```
+```bash
 y  k  u
  \ | /
 h -+- l
@@ -44,7 +44,7 @@ b  j  n
 
 ### Numpad (8-directional)
 
-```
+```bash
 7  8  9
  \ | /
 4 -5- 6

@@ -1,14 +1,15 @@
 [package]
-name = "runeforge-input"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-repository.workspace = true
+name                    = "runeforge-input"
+version.workspace       = true
+edition.workspace       = true
+rust-version.workspace  = true
+license.workspace       = true
+repository.workspace    = true
 documentation.workspace = true
-keywords.workspace = true
-categories.workspace = true
-description = "Input handling for the Runeforge roguelike library"
+keywords.workspace      = true
+categories.workspace    = true
+description             = "Input handling for the Runeforge roguelike library"
+readme                  = "README.md"
 
 [dependencies]
 winit = { workspace = true }
