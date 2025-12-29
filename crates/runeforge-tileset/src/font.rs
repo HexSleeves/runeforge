@@ -325,16 +325,158 @@ impl Font for BitmapFont {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    /// Minimal BDF font containing only 'A' and 'B' characters (8x8 pixels each)
+    const MINIMAL_BDF: &[u8] = b"STARTFONT 2.1
+FONT -Minimal-Test-Medium-R-Normal--8-80-75-75-C-80-ISO10646-1
+SIZE 8 75 75
+FONTBOUNDINGBOX 8 8 0 0
+STARTPROPERTIES 2
+FONT_ASCENT 8
+FONT_DESCENT 0
+ENDPROPERTIES
+CHARS 3
+STARTCHAR space
+ENCODING 32
+SWIDTH 500 0
+DWIDTH 8 0
+BBX 8 8 0 0
+BITMAP
+00
+00
+00
+00
+00
+00
+00
+00
+ENDCHAR
+STARTCHAR A
+ENCODING 65
+SWIDTH 500 0
+DWIDTH 8 0
+BBX 8 8 0 0
+BITMAP
+18
+24
+42
+42
+7E
+42
+42
+00
+ENDCHAR
+STARTCHAR B
+ENCODING 66
+SWIDTH 500 0
+DWIDTH 8 0
+BBX 8 8 0 0
+BITMAP
+7C
+42
+7C
+42
+42
+42
+7C
+00
+ENDCHAR
+ENDFONT
+";
+
     #[test]
-    #[cfg(feature = "truetype")]
-    fn test_truetype_font_metrics() {
-        // This test requires a font file, so we just verify the API compiles
-        // In a real test, you'd load an actual font file
+    #[cfg(feature = "bitmap")]
+    fn test_bitmap_font_loading() {
+        let font = BitmapFont::from_bytes(MINIMAL_BDF).expect("Failed to load minimal BDF font");
+
+        assert!(font.cell_width() > 0);
+        assert!(font.cell_height() > 0);
+        assert!(!font.name().is_empty());
     }
 
     #[test]
     #[cfg(feature = "bitmap")]
-    fn test_bitmap_font_placeholder() {
-        // Placeholder test - real tests would require BDF font files
+    fn test_bitmap_font_has_glyph() {
+        let font = BitmapFont::from_bytes(MINIMAL_BDF).expect("Failed to load minimal BDF font");
+
+        assert!(font.has_glyph('A'));
+        assert!(font.has_glyph('B'));
+        assert!(font.has_glyph(' '));
+        assert!(!font.has_glyph('Z')); // Not in our minimal font
+    }
+
+    #[test]
+    #[cfg(feature = "bitmap")]
+    fn test_bitmap_font_render_glyph() {
+        let font = BitmapFont::from_bytes(MINIMAL_BDF).expect("Failed to load minimal BDF font");
+
+        let glyph_a = font.render_glyph('A').expect("Failed to render 'A'");
+        assert_eq!(glyph_a.character, 'A');
+        assert!(glyph_a.width > 0);
+        assert!(glyph_a.height > 0);
+        assert!(!glyph_a.bitmap.is_empty());
+
+        // Verify bitmap has some non-zero pixels (the glyph data)
+        let has_pixels = glyph_a.bitmap.iter().any(|&p| p > 0);
+        assert!(has_pixels, "Glyph 'A' should have visible pixels");
+    }
+
+    #[test]
+    #[cfg(feature = "bitmap")]
+    fn test_bitmap_font_render_space() {
+        let font = BitmapFont::from_bytes(MINIMAL_BDF).expect("Failed to load minimal BDF font");
+
+        let space = font.render_glyph(' ').expect("Failed to render space");
+        assert_eq!(space.character, ' ');
+        // Space should be all zeros
+        assert!(space.bitmap.iter().all(|&p| p == 0));
+    }
+
+    #[test]
+    #[cfg(feature = "bitmap")]
+    fn test_bitmap_font_missing_glyph() {
+        let font = BitmapFont::from_bytes(MINIMAL_BDF).expect("Failed to load minimal BDF font");
+
+        let result = font.render_glyph('Z');
+        assert!(result.is_none(), "Missing glyph should return None");
+    }
+
+    #[test]
+    #[cfg(feature = "bitmap")]
+    fn test_bitmap_font_invalid_data() {
+        let result = BitmapFont::from_bytes(b"not a valid BDF file");
+        assert!(result.is_err(), "Invalid BDF data should return error");
+    }
+
+    #[test]
+    #[cfg(feature = "truetype")]
+    fn test_truetype_font_invalid_data() {
+        let result = TrueTypeFont::from_bytes(b"not a valid TTF file", 16.0);
+        assert!(result.is_err(), "Invalid TTF data should return error");
+    }
+
+    #[test]
+    #[cfg(feature = "truetype")]
+    fn test_truetype_font_empty_data() {
+        let result = TrueTypeFont::from_bytes(&[], 16.0);
+        assert!(result.is_err(), "Empty data should return error");
+    }
+
+    #[test]
+    fn test_rendered_glyph_struct() {
+        let glyph = RenderedGlyph {
+            character: '@',
+            width: 8,
+            height: 8,
+            bearing_x: 0,
+            bearing_y: 8,
+            bitmap: vec![255; 64],
+        };
+
+        assert_eq!(glyph.character, '@');
+        assert_eq!(glyph.width, 8);
+        assert_eq!(glyph.height, 8);
+        assert_eq!(glyph.bitmap.len(), 64);
     }
 }

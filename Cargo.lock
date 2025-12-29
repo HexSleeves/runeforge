@@ -2235,6 +2235,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "runeforge-console"
+version = "0.1.0"
+dependencies = [
+ "runeforge-color",
+ "runeforge-geometry",
+]
+
+[[package]]
 name = "runeforge-core"
 version = "0.1.0"
 dependencies = [
@@ -2291,11 +2299,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "runeforge-pixels"
+version = "0.1.0"
+dependencies = [
+ "pixels",
+ "runeforge-color",
+ "runeforge-console",
+ "runeforge-geometry",
+ "runeforge-input",
+ "runeforge-tileset",
+ "winit",
+]
+
+[[package]]
 name = "runeforge-random"
 version = "0.1.0"
 dependencies = [
  "rand 0.9.2",
  "serde",
+]
+
+[[package]]
+name = "runeforge-software"
+version = "0.1.0"
+dependencies = [
+ "image",
+ "runeforge-color",
+ "runeforge-console",
+ "runeforge-geometry",
+ "runeforge-tileset",
 ]
 
 [[package]]

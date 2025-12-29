@@ -9,8 +9,11 @@ members = [
   "crates/runeforge-pathfinding",
   "crates/runeforge-fov",
   "crates/runeforge-bsp",
+  "crates/runeforge-console",
   "crates/runeforge-terminal",
   "crates/runeforge-tileset",
+  "crates/runeforge-software",
+  "crates/runeforge-pixels",
   "crates/runeforge-input",
   "crates/runeforge-algorithms",
 ]
@@ -35,13 +38,16 @@ runeforge-random      = { path = "crates/runeforge-random", version = "0.1.0" }
 runeforge-pathfinding = { path = "crates/runeforge-pathfinding", version = "0.1.0" }
 runeforge-fov         = { path = "crates/runeforge-fov", version = "0.1.0" }
 runeforge-bsp         = { path = "crates/runeforge-bsp", version = "0.1.0" }
+runeforge-console     = { path = "crates/runeforge-console", version = "0.1.0" }
 runeforge-terminal    = { path = "crates/runeforge-terminal", version = "0.1.0" }
 runeforge-tileset     = { path = "crates/runeforge-tileset", version = "0.1.0" }
+runeforge-software    = { path = "crates/runeforge-software", version = "0.1.0" }
+runeforge-pixels      = { path = "crates/runeforge-pixels", version = "0.1.0" }
 runeforge-input       = { path = "crates/runeforge-input", version = "0.1.0" }
 runeforge-algorithms  = { path = "crates/runeforge-algorithms", version = "0.1.0" }
 
 # Window & Events
-winit = "0.30"
+winit = { version = "0.30", features = ["rwh_06"] }
 
 # Rendering
 wgpu     = "28.0.0"

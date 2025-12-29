@@ -210,6 +210,7 @@ impl GlyphAtlas {
     /// * `c` - Character to render
     /// * `fg` - Foreground color
     /// * `bg` - Background color (None for transparent)
+    #[allow(clippy::too_many_arguments)]
     pub fn render_char(
         &self,
         buffer: &mut [u8],

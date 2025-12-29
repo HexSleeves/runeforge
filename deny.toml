@@ -1,13 +1,12 @@
 [graph]
-targets = []
+targets      = []
 all-features = true
 
 [advisories]
 version = 2
-ignore = []
+ignore  = []
 
 [licenses]
-unlicensed = "deny"
 confidence-threshold = 0.93
 allow = [
     "MIT",
@@ -23,18 +22,19 @@ allow = [
     "CC0-1.0",
     "BSL-1.0",
 ]
+deny = []
 exceptions = []
 
 [bans]
-multiple-versions = "warn"
-wildcards = "allow"
-highlight = "all"
+multiple-versions          = "warn"
+wildcards                  = "allow"
+highlight                  = "all"
 workspace-default-features = "allow"
-external-default-features = "allow"
-skip = []
-skip-tree = []
+external-default-features  = "allow"
+skip                       = []
+skip-tree                  = []
 
 [sources]
 unknown-registry = "deny"
-unknown-git = "warn"
-allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+unknown-git      = "warn"
+allow-registry   = ["https://github.com/rust-lang/crates.io-index"]

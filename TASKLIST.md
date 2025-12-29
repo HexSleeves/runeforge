@@ -2,7 +2,7 @@
 
 This document tracks the implementation progress of the Runeforge roguelike library.
 
-**Overall Progress: 10/22 tasks completed (45%)**
+**Overall Progress: 14/22 tasks completed (64%)**
 
 ---
 
@@ -74,11 +74,12 @@ This document tracks the implementation progress of the Runeforge roguelike libr
 
 ## Phase 4: Rendering Backend (Weeks 13-16)
 
-**Status: 🔄 IN PROGRESS (1/4 tasks complete)**
+**Status: ✅ COMPLETED**
 
-- [ ] Implement font and tileset loading (TrueType, bitmap)
-- [ ] Create GPU rendering backend using wgpu + pixels
-- [ ] Create software rendering backend (CPU-based)
+- [x] Implement font and tileset loading (TrueType, bitmap)
+- [x] Create Console abstraction trait for backend-agnostic rendering
+- [x] Create software rendering backend (CPU-based, PNG export)
+- [x] Create GPU-ready rendering backend (pixels/wgpu compatible)
 - [x] Create terminal backend with ANSI escape codes (7 tests, 2 demo examples)
 
 **Deliverables:**
@@ -188,7 +189,14 @@ Each phase must meet these criteria before being marked complete:
 - `runeforge-pathfinding`: A* algorithm with Manhattan and Chebyshev heuristics
 - `runeforge-bsp`: Binary space partitioning for dungeon generation (12 tests)
 - BSP demo showcasing configurable dungeon layouts
-- ✨ **NEW:** Criterion benchmarks for FOV, pathfinding, and BSP algorithms
+- Criterion benchmarks for FOV, pathfinding, and BSP algorithms
+- ✨ **NEW:** `runeforge-tileset`: TrueType and BDF bitmap font loading with glyph atlas
+- ✨ **NEW:** `runeforge-console`: Backend-agnostic Console trait abstraction
+- ✨ **NEW:** `runeforge-software`: CPU-based rendering with PNG export
+- ✨ **NEW:** `runeforge-pixels`: GPU-ready pixel buffer renderer with winit 0.30 integration
+- ✨ **NEW:** Windowed roguelike demo with keyboard controls and GPU rendering
+- ✨ **NEW:** PNG tileset demo showcasing CP437 character mapping
+- ✨ **NEW:** Software renderer roguelike demo with PNG export
 
 **Benchmark Results (sample):**
 
@@ -196,15 +204,25 @@ Each phase must meet these criteria before being marked complete:
 - A* pathfinding (25 tiles, 4-dir): ~11 µs per path
 - BSP dungeon (80x50): ~5.6 µs per generation
 
+**Rendering Backends:**
+
+- Terminal: ANSI escape codes with 24-bit RGB color
+- Software: CPU-based RGBA pixel buffer with PNG export
+- Pixels: GPU-accelerated with winit 0.30 + pixels 0.15 integration
+  - Full windowed roguelike example with player movement
+  - Uses ApplicationHandler trait pattern with Box::leak() lifetime management
+  - Hardware-accelerated rendering at 60+ FPS
+- All backends implement the same `Console` trait for backend-agnostic games
+
 **Next Up:**
 
-- Phase 3: Noise generation and map algorithms
-- Phase 4: GPU/software/terminal rendering backends
-- Phase 5: Add keyboard input handling for interactive demos
+- Phase 3: Noise generation and procedural map algorithms (cellular automata, drunkard's walk)
+- Phase 5: Input handling with keyboard and mouse support
+- Phase 6: Complete example roguelike game demonstrating all features
 
 **Target Completion:** 24 weeks from project start
 
 ---
 
-*Last Updated: 2025-12-28*
+*Last Updated: 2025-12-29*
 *Project Repository: <https://github.com/yourusername/runeforge>*

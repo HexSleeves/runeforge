@@ -122,7 +122,7 @@ impl Tileset {
     }
 
     /// Loads a tileset from a DynamicImage.
-    fn from_image(img: image::DynamicImage, tile_width: u32, tile_height: u32) -> Result<Self> {
+    pub fn from_image(img: image::DynamicImage, tile_width: u32, tile_height: u32) -> Result<Self> {
         let (img_width, img_height) = img.dimensions();
 
         if tile_width == 0 || tile_height == 0 {
@@ -431,6 +431,59 @@ pub fn cp437_to_char(code: u8) -> char {
         '≡', '±', '≥', '≤', '⌠', '⌡', '÷', '≈', '°', '∙', '·', '√', 'ⁿ', '²', '■', ' ',
     ];
     CP437_TABLE[code as usize]
+}
+
+// Implement Font trait for Tileset to enable use with renderers
+impl crate::font::Font for Tileset {
+    fn name(&self) -> &str {
+        "Tileset"
+    }
+
+    fn cell_width(&self) -> u32 {
+        self.tile_width
+    }
+
+    fn cell_height(&self) -> u32 {
+        self.tile_height
+    }
+
+    fn line_height(&self) -> u32 {
+        self.tile_height
+    }
+
+    fn render_glyph(&self, c: char) -> Option<crate::font::RenderedGlyph> {
+        // Get tile for this character via CP437 mapping
+        let tile = self.get_cp437_tile(c)?;
+
+        // Convert RGBA tile to grayscale for the Font trait
+        // We use the average of RGB channels for grayscale
+        let mut bitmap = Vec::with_capacity((tile.width * tile.height) as usize);
+        for chunk in tile.pixels.chunks(4) {
+            let r = chunk[0] as u32;
+            let g = chunk[1] as u32;
+            let b = chunk[2] as u32;
+            let a = chunk[3];
+
+            // Average RGB for grayscale, keep alpha
+            let gray = ((r + g + b) / 3) as u8;
+
+            // Use alpha channel directly (0 = transparent, 255 = opaque)
+            bitmap.push(if a > 0 { gray } else { 0 });
+        }
+
+        Some(crate::font::RenderedGlyph {
+            character: c,
+            width: tile.width,
+            height: tile.height,
+            bearing_x: 0,
+            bearing_y: tile.height as i32,
+            bitmap,
+        })
+    }
+
+    fn has_glyph(&self, c: char) -> bool {
+        self.get_cp437_tile(c).is_some()
+    }
 }
 
 #[cfg(test)]

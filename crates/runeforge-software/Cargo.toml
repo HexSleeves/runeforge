@@ -1,0 +1,20 @@
+[package]
+name                    = "runeforge-software"
+version.workspace       = true
+edition.workspace       = true
+rust-version.workspace  = true
+license.workspace       = true
+repository.workspace    = true
+documentation.workspace = true
+keywords.workspace      = true
+categories.workspace    = true
+description             = "CPU-based software rendering backend for Runeforge"
+
+[dependencies]
+runeforge-color    = { workspace = true }
+runeforge-geometry = { workspace = true }
+runeforge-console  = { workspace = true }
+runeforge-tileset  = { workspace = true }
+image              = { workspace = true }
+
+[dev-dependencies]
