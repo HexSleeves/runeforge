@@ -19,7 +19,7 @@
 
 #![deny(missing_docs)]
 
-use noise::{NoiseFn, Perlin, Seedable};
+use noise::{NoiseFn, Perlin};
 
 /// A 2D grid of noise values generated using Perlin noise.
 ///
@@ -74,19 +74,16 @@ impl NoiseMap {
     /// The scale determines how "zoomed in" the noise appears - higher values
     /// create more variation over shorter distances.
     fn generate(&mut self) {
-        // TODO(human): Implement noise generation
-        // Create a Perlin noise generator with the seed
-        // Loop through each position (x, y) in the map
-        // Sample the noise at that position with appropriate scaling
-        // Store the result in self.values
+        // Create Perlin generator once for efficiency
+        let perlin = Perlin::new(self.seed);
 
-        // Hints:
-        // - Use noise::Perlin::new() and .set_seed(self.seed)
-        // - Scale factor of 0.05 works well (divide x and y by 20.0)
-        // - Use perlin.get([x_scaled, y_scaled]) to sample
-        // - Store in self.values[y * self.width + x]
-
-        todo!("Implement Perlin noise generation - see TODO(human) above")
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let x_scaled = x as f64 / 20.0;
+                let y_scaled = y as f64 / 20.0;
+                self.values[y * self.width + x] = perlin.get([x_scaled, y_scaled]);
+            }
+        }
     }
 
     /// Get the noise value at the given coordinates.
@@ -179,7 +176,7 @@ mod tests {
     fn test_normalized_range() {
         let noise_map = NoiseMap::new(10, 10, 42);
         let normalized = noise_map.normalized(5, 5);
-        assert!(normalized >= 0.0 && normalized <= 1.0);
+        assert!((0.0..=1.0).contains(&normalized));
     }
 
     #[test]

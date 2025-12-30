@@ -13,6 +13,7 @@ description             = "Miscellaneous algorithms for the Runeforge roguelike 
 
 [dependencies]
 runeforge-geometry = { workspace = true }
+runeforge-random   = { workspace = true }
 bresenham          = { workspace = true }
 line_drawing       = { workspace = true }
 

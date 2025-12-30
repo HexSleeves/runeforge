@@ -1,3 +1,5 @@
+#![feature(allocator_api)]
+
 //! Random number generation with roguelike-specific utilities.
 //!
 //! This crate provides convenient wrappers around the `rand` crate,
@@ -5,11 +7,16 @@
 
 #![deny(missing_docs)]
 
-use rand::{prelude::*, rng, Rng as RngTrait};
+use rand::{prelude::*, rngs::StdRng, Rng as RngTrait, SeedableRng};
 
 /// A random number generator wrapper with convenience methods for roguelike development.
 pub struct Rng {
-    rng: ThreadRng,
+    rng: RngImpl,
+}
+
+enum RngImpl {
+    Seeded(Box<StdRng, std::alloc::Global>),
+    ThreadLocal(rand::rngs::ThreadRng),
 }
 
 impl Rng {
@@ -25,7 +32,31 @@ impl Rng {
     /// assert!(value >= 1 && value <= 10);
     /// ```
     pub fn new() -> Self {
-        Self { rng: rng() }
+        Self {
+            rng: RngImpl::ThreadLocal(rand::rng()),
+        }
+    }
+
+    /// Creates a new random number generator with a specific seed.
+    ///
+    /// This is useful for deterministic generation and reproducible tests.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use runeforge_random::Rng;
+    ///
+    /// let mut rng1 = Rng::with_seed(12345);
+    /// let mut rng2 = Rng::with_seed(12345);
+    ///
+    /// // Same seed produces same sequence
+    /// assert_eq!(rng1.range(1, 100), rng2.range(1, 100));
+    /// assert_eq!(rng1.range(1, 100), rng2.range(1, 100));
+    /// ```
+    pub fn with_seed(seed: u64) -> Self {
+        Self {
+            rng: RngImpl::Seeded(Box::new(StdRng::seed_from_u64(seed))),
+        }
     }
 
     /// Generates a random number in the inclusive range [min, max].
@@ -41,7 +72,7 @@ impl Rng {
     /// ```
     #[inline]
     pub fn range(&mut self, min: i32, max: i32) -> i32 {
-        self.rng.random_range(min..=max)
+        self.with_rng(|r| r.random_range(min..=max))
     }
 
     /// Generates a random floating-point number in the range [0.0, 1.0).
@@ -57,7 +88,7 @@ impl Rng {
     /// ```
     #[inline]
     pub fn float(&mut self) -> f32 {
-        self.rng.random()
+        self.with_rng(|r| r.random())
     }
 
     /// Returns true with the given probability (0.0 to 1.0).
@@ -72,7 +103,7 @@ impl Rng {
     /// ```
     #[inline]
     pub fn chance(&mut self, probability: f32) -> bool {
-        self.rng.random::<f32>() < probability
+        self.with_rng(|r| r.random::<f32>()) < probability
     }
 
     /// Rolls dice in XdY format (e.g., 3d6 = roll 3 six-sided dice).
@@ -103,7 +134,10 @@ impl Rng {
     /// // items is now in random order
     /// ```
     pub fn shuffle<T>(&mut self, slice: &mut [T]) {
-        slice.shuffle(&mut self.rng);
+        match &mut self.rng {
+            RngImpl::ThreadLocal(r) => slice.shuffle(r),
+            RngImpl::Seeded(r) => slice.shuffle(r),
+        }
     }
 
     /// Chooses a random element from a slice.
@@ -122,7 +156,10 @@ impl Rng {
     /// }
     /// ```
     pub fn choose<'a, T>(&mut self, slice: &'a [T]) -> Option<&'a T> {
-        slice.choose(&mut self.rng)
+        match &mut self.rng {
+            RngImpl::ThreadLocal(r) => slice.choose(r),
+            RngImpl::Seeded(r) => slice.choose(r),
+        }
     }
 
     /// Chooses a random element with weighted probabilities.
@@ -151,7 +188,7 @@ impl Rng {
             return None;
         }
 
-        let mut roll = self.rng.random_range(0..total);
+        let mut roll = self.with_rng(|r| r.random_range(0..total));
         for (item, &weight) in items.iter().zip(weights.iter()) {
             if roll < weight {
                 return Some(item);
@@ -160,6 +197,18 @@ impl Rng {
         }
 
         items.last()
+    }
+
+    /// Helper to run a closure with the underlying RNG.
+    #[inline]
+    fn with_rng<T, F>(&mut self, f: F) -> T
+    where
+        F: FnOnce(&mut dyn RngCore) -> T,
+    {
+        match &mut self.rng {
+            RngImpl::ThreadLocal(r) => f(r),
+            RngImpl::Seeded(r) => f(r),
+        }
     }
 }
 
@@ -191,7 +240,6 @@ impl Default for Rng {
 pub fn parse_dice(notation: &str) -> Result<(u32, i32, i32), String> {
     let notation = notation.trim().to_lowercase();
 
-    // Find the 'd' separator
     let Some(d_pos) = notation.find('d') else {
         return Err(format!(
             "Invalid dice notation: missing 'd' in '{}'",
@@ -199,7 +247,6 @@ pub fn parse_dice(notation: &str) -> Result<(u32, i32, i32), String> {
         ));
     };
 
-    // Parse number of dice
     let num_str = &notation[..d_pos];
     let num_dice = if num_str.is_empty() {
         1
@@ -209,7 +256,6 @@ pub fn parse_dice(notation: &str) -> Result<(u32, i32, i32), String> {
             .map_err(|_| format!("Invalid number of dice: '{}' in '{}'", num_str, notation))?
     };
 
-    // Find modifier (+ or -)
     let rest = &notation[d_pos + 1..];
     let (sides_str, modifier) = if let Some(plus_pos) = rest.find('+') {
         let modifier_str = &rest[plus_pos + 1..];
@@ -227,7 +273,6 @@ pub fn parse_dice(notation: &str) -> Result<(u32, i32, i32), String> {
         (rest, 0)
     };
 
-    // Parse sides
     let sides = sides_str
         .parse::<i32>()
         .map_err(|_| format!("Invalid number of sides: '{}' in '{}'", sides_str, notation))?;
@@ -255,6 +300,23 @@ pub fn roll_dice_notation(notation: &str) -> Result<i32, String> {
     Ok(rng.roll_dice(num_dice, sides) + modifier)
 }
 
+/// Rolls dice from a dice notation string with a seeded RNG.
+///
+/// # Examples
+///
+/// ```
+/// use runeforge_random::roll_dice_notation_seeded;
+///
+/// let result1 = roll_dice_notation_seeded("3d6+2", 12345).unwrap();
+/// let result2 = roll_dice_notation_seeded("3d6+2", 12345).unwrap();
+/// assert_eq!(result1, result2);  // Same seed = same result
+/// ```
+pub fn roll_dice_notation_seeded(notation: &str, seed: u64) -> Result<i32, String> {
+    let (num_dice, sides, modifier) = parse_dice(notation)?;
+    let mut rng = Rng::with_seed(seed);
+    Ok(rng.roll_dice(num_dice, sides) + modifier)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -269,10 +331,39 @@ mod tests {
     }
 
     #[test]
+    fn test_seeded_determinism() {
+        let mut rng1 = Rng::with_seed(42);
+        let mut rng2 = Rng::with_seed(42);
+
+        for _ in 0..100 {
+            assert_eq!(rng1.range(1, 1000), rng2.range(1, 1000));
+        }
+    }
+
+    #[test]
+    fn test_different_seeds_different_results() {
+        let mut rng1 = Rng::with_seed(1);
+        let mut rng2 = Rng::with_seed(2);
+
+        let results1: Vec<_> = (0..10).map(|_| rng1.range(1, 1000)).collect();
+        let results2: Vec<_> = (0..10).map(|_| rng2.range(1, 1000)).collect();
+
+        assert_ne!(results1, results2);
+    }
+
+    #[test]
     fn test_roll_dice() {
         let mut rng = Rng::new();
         let result = rng.roll_dice(3, 6);
         assert!((3..=18).contains(&result));
+    }
+
+    #[test]
+    fn test_roll_dice_seeded() {
+        let mut rng1 = Rng::with_seed(12345);
+        let mut rng2 = Rng::with_seed(12345);
+
+        assert_eq!(rng1.roll_dice(3, 6), rng2.roll_dice(3, 6));
     }
 
     #[test]
@@ -294,14 +385,22 @@ mod tests {
     fn test_chance() {
         let mut rng = Rng::new();
 
-        // Test with 100% chance - should always be true
         for _ in 0..10 {
             assert!(rng.chance(1.0));
         }
 
-        // Test with 0% chance - should always be false
         for _ in 0..10 {
             assert!(!rng.chance(0.0));
+        }
+    }
+
+    #[test]
+    fn test_chance_seeded() {
+        let mut rng1 = Rng::with_seed(999);
+        let mut rng2 = Rng::with_seed(999);
+
+        for _ in 0..20 {
+            assert_eq!(rng1.chance(0.5), rng2.chance(0.5));
         }
     }
 
@@ -309,10 +408,55 @@ mod tests {
     fn test_weighted_choose() {
         let mut rng = Rng::new();
         let items = vec!["a", "b", "c"];
-        let weights = vec![100, 0, 0]; // 100% chance of 'a'
+        let weights = vec![100, 0, 0];
 
         for _ in 0..10 {
             assert_eq!(rng.weighted_choose(&items, &weights), Some(&"a"));
+        }
+    }
+
+    #[test]
+    fn test_shuffle_seeded() {
+        let mut rng1 = Rng::with_seed(42);
+        let mut rng2 = Rng::with_seed(42);
+
+        let mut items1 = vec![1, 2, 3, 4, 5];
+        let mut items2 = vec![1, 2, 3, 4, 5];
+
+        rng1.shuffle(&mut items1);
+        rng2.shuffle(&mut items2);
+
+        assert_eq!(items1, items2);
+    }
+
+    #[test]
+    fn test_choose_seeded() {
+        let mut rng1 = Rng::with_seed(42);
+        let mut rng2 = Rng::with_seed(42);
+
+        let items = vec!["a", "b", "c", "d", "e"];
+
+        for _ in 0..10 {
+            assert_eq!(rng1.choose(&items), rng2.choose(&items));
+        }
+    }
+
+    #[test]
+    fn test_float_range() {
+        let mut rng = Rng::new();
+        for _ in 0..100 {
+            let value = rng.float();
+            assert!((0.0..1.0).contains(&value));
+        }
+    }
+
+    #[test]
+    fn test_float_seeded() {
+        let mut rng1 = Rng::with_seed(42);
+        let mut rng2 = Rng::with_seed(42);
+
+        for _ in 0..10 {
+            assert_eq!(rng1.float(), rng2.float());
         }
     }
 }
