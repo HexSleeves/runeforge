@@ -14,13 +14,14 @@ description             = "Font and tileset loading for the Runeforge roguelike 
 [dependencies]
 runeforge-color = { workspace = true }
 ab_glyph        = { workspace = true }
-bdf-parser      = { workspace = true }
-image           = { workspace = true }
-thiserror       = { workspace = true }
+# nom             = { workspace = true }
+# strum           = { workspace = true }
+# bstr            = { workspace = true }
+image      = { workspace = true }
+thiserror  = { workspace = true }
+bdf-parser = { workspace = true }
 
 [features]
 default  = ["truetype", "bitmap"]
 truetype = []
 bitmap   = []
-
-[dev-dependencies]

@@ -1,5 +1,7 @@
 //! Font loading and rendering.
 
+use bdf_parser::Encoding;
+
 use crate::error::{Result, TilesetError};
 
 /// A rendered glyph with its bitmap data.
@@ -204,7 +206,7 @@ struct BdfGlyph {
     bitmap: Vec<u8>,
 }
 
-#[cfg(feature = "bitmap")]
+// #[cfg(feature = "bitmap")]
 impl BitmapFont {
     /// Loads a BDF bitmap font from bytes.
     ///
@@ -217,58 +219,65 @@ impl BitmapFont {
     /// let font = BitmapFont::from_bytes(&font_data).unwrap();
     /// ```
     pub fn from_bytes(data: &[u8]) -> Result<Self> {
-        use bdf_parser::BdfFont;
+        use bdf_parser::Font;
+
+        let data_str = std::str::from_utf8(data)
+            .map_err(|e| TilesetError::BdfFontError(format!("UTF-8 decoding error: {}", e)))?;
 
         let bdf =
-            BdfFont::parse(data).map_err(|e| TilesetError::BdfFontError(format!("{:?}", e)))?;
+            Font::parse(data_str).map_err(|e| TilesetError::BdfFontError(format!("{:?}", e)))?;
 
         let mut glyphs = std::collections::HashMap::new();
         let mut max_width = 0u32;
         let mut max_height = 0u32;
 
         for glyph in bdf.glyphs.iter() {
-            if let Some(encoding) = glyph.encoding {
-                if let Some(c) = char::from_u32(encoding as u32) {
-                    let bounds = glyph.bounding_box;
-                    let width = bounds.size.x as u32;
-                    let height = bounds.size.y as u32;
+            // Extract encoding value, skipping Unspecified encodings
+            let encoding_value = match glyph.encoding {
+                Encoding::Standard(val) | Encoding::NonStandard(val) => val,
+                Encoding::Unspecified => continue,
+            };
 
-                    max_width = max_width.max(width);
-                    max_height = max_height.max(height);
+            if let Some(c) = char::from_u32(encoding_value) {
+                let bounds = glyph.bounding_box;
+                let width = bounds.size.x as u32;
+                let height = bounds.size.y as u32;
 
-                    // Convert bitmap from BDF format (1-bit packed) to grayscale
-                    let mut bitmap = vec![0u8; (width * height) as usize];
+                max_width = max_width.max(width);
+                max_height = max_height.max(height);
 
-                    if !glyph.bitmap.is_empty() {
-                        let bytes_per_row = width.div_ceil(8) as usize; // Round up for partial bytes
-                        for y in 0..height as usize {
-                            for x in 0..width as usize {
-                                let byte_idx = y * bytes_per_row + (x / 8);
-                                let bit_idx = 7 - (x % 8);
-                                if byte_idx < glyph.bitmap.len() {
-                                    let bit = (glyph.bitmap[byte_idx] >> bit_idx) & 1;
-                                    if bit == 1 {
-                                        let idx = y * width as usize + x;
-                                        if idx < bitmap.len() {
-                                            bitmap[idx] = 255;
-                                        }
+                // Convert bitmap from BDF format (1-bit packed) to grayscale
+                let mut bitmap = vec![0u8; (width * height) as usize];
+
+                if !glyph.bitmap.is_empty() {
+                    let bytes_per_row = width.div_ceil(8) as usize; // Round up for partial bytes
+                    for y in 0..height as usize {
+                        for x in 0..width as usize {
+                            let byte_idx = y * bytes_per_row + (x / 8);
+                            let bit_idx = 7 - (x % 8);
+                            if byte_idx < glyph.bitmap.len() {
+                                let bit = (glyph.bitmap[byte_idx] >> bit_idx) & 1;
+                                if bit == 1 {
+                                    let idx = y * width as usize + x;
+                                    if idx < bitmap.len() {
+                                        bitmap[idx] = 255;
                                     }
                                 }
                             }
                         }
                     }
-
-                    glyphs.insert(
-                        c,
-                        BdfGlyph {
-                            width,
-                            height,
-                            bearing_x: bounds.offset.x,
-                            bearing_y: bounds.offset.y + height as i32,
-                            bitmap,
-                        },
-                    );
                 }
+
+                glyphs.insert(
+                    c,
+                    BdfGlyph {
+                        width,
+                        height,
+                        bearing_x: bounds.offset.x,
+                        bearing_y: bounds.offset.y + height as i32,
+                        bitmap,
+                    },
+                );
             }
         }
 

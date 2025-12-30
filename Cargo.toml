@@ -75,7 +75,7 @@ bytemuck = "1.24.0"
 # Text rendering
 ab_glyph    = "0.2"
 cosmic-text = "0.15"
-bdf-parser  = "0.1"
+bdf-parser  = { git = "https://github.com/embedded-graphics/bdf.git", package = "bdf-parser" }
 
 # Images
 image = { version = "0.25", default-features = false, features = ["png"] }
