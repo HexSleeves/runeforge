@@ -44,14 +44,14 @@ use runeforge_geometry::Point;
 /// Using fractions avoids floating-point rounding errors in the shadowcasting algorithm.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Fraction {
-    numerator: i32,
-    denominator: i32,
+    numerator: i64,
+    denominator: i64,
 }
 
 impl Fraction {
     /// Creates a new fraction.
     #[inline]
-    const fn new(numerator: i32, denominator: i32) -> Self {
+    const fn new(numerator: i64, denominator: i64) -> Self {
         Self {
             numerator,
             denominator,
@@ -135,31 +135,30 @@ impl Row {
     #[inline]
     fn round_ties_up_frac(frac: Fraction, depth: i32) -> i32 {
         // Integer division rounds toward zero, so handle negatives explicitly.
-        let num = frac.numerator * depth * 2 + frac.denominator;
+        let num = frac.numerator * i64::from(depth) * 2 + frac.denominator;
         let den = frac.denominator * 2;
-        num_integer::Integer::div_floor(&num, &den)
+        num_integer::Integer::div_floor(&num, &den) as i32
     }
 
     /// Round ties down: ceil(fraction * depth - 0.5)
     #[inline]
     fn round_ties_down_frac(frac: Fraction, depth: i32) -> i32 {
         // Integer division rounds toward zero, so handle negatives explicitly.
-        let num = frac.numerator * depth * 2 - frac.denominator;
+        let num = frac.numerator * i64::from(depth) * 2 - frac.denominator;
         let den = frac.denominator * 2;
-        // Self::div_ceil(num, den)
-        num_integer::Integer::div_ceil(&num, &den)
+        num_integer::Integer::div_ceil(&num, &den) as i32
     }
 
     /// Returns the slope from the origin through the left edge of the tile.
     #[inline]
     fn slope(col: i32, depth: i32) -> Fraction {
-        Fraction::new(2 * col - 1, 2 * depth)
+        Fraction::new(2 * i64::from(col) - 1, 2 * i64::from(depth))
     }
 
     /// Returns true if the floor tile is symmetric.
     #[inline]
     fn is_symmetric(&self, col: i32) -> bool {
-        let slope = Fraction::new(col, self.depth);
+        let slope = Fraction::new(i64::from(col), i64::from(self.depth));
         slope.greater_equal(self.start_slope) && slope.less_equal(self.end_slope)
     }
 
@@ -213,7 +212,8 @@ where
     mark_visible(origin);
 
     // Pre-calculate squared radius for distance checks
-    let max_radius_squared = max_radius * max_radius;
+    let max_radius_i64 = i64::from(max_radius);
+    let max_radius_squared = max_radius_i64 * max_radius_i64;
 
     // Scan each quadrant using an iterative approach with an explicit stack
     for cardinal in [
@@ -236,15 +236,21 @@ where
 
             let mut prev_tile_blocking: Option<bool> = None;
 
-            for col in row.tiles() {
-                let tile = quadrant.transform(origin, row.depth, col);
+            let depth_i64 = i64::from(row.depth);
+            let depth_squared = depth_i64 * depth_i64;
+            if depth_squared > max_radius_squared {
+                continue;
+            }
 
-                // Early distance check using squared distance to avoid sqrt
-                let dx = tile.x - origin.x;
-                let dy = tile.y - origin.y;
-                if dx * dx + dy * dy > max_radius_squared {
-                    continue;
-                }
+            let max_col = isqrt_i64(max_radius_squared - depth_squared);
+            let min_col = Row::round_ties_up_frac(row.start_slope, row.depth).max(-max_col);
+            let max_col = Row::round_ties_down_frac(row.end_slope, row.depth).min(max_col);
+            if min_col > max_col {
+                continue;
+            }
+
+            for col in min_col..=max_col {
+                let tile = quadrant.transform(origin, row.depth, col);
 
                 let tile_blocking = is_blocking(tile);
 
@@ -299,17 +305,18 @@ pub fn compute_fov_circle<F>(origin: Point, radius: i32, mark_visible: &mut F)
 where
     F: FnMut(Point),
 {
-    let radius_squared = radius * radius;
+    let radius_i64 = i64::from(radius);
+    let radius_squared = radius_i64 * radius_i64;
 
     for dy in -radius..=radius {
         // Calculate the maximum dx for this row based on the circle equation
         // This avoids checking tiles that are guaranteed to be outside the circle
-        let dy_squared = dy * dy;
+        let dy_squared = i64::from(dy) * i64::from(dy);
         let max_dx_squared = radius_squared - dy_squared;
 
         // Use integer sqrt approximation to get exact bounds
         // This is faster than checking every tile in the row
-        let max_dx = isqrt(max_dx_squared);
+        let max_dx = isqrt_i64(max_dx_squared);
 
         for dx in -max_dx..=max_dx {
             mark_visible(Point::new(origin.x + dx, origin.y + dy));
@@ -337,6 +344,28 @@ fn isqrt(x: i32) -> i32 {
     }
 
     guess
+}
+
+/// Integer square root using Newton's method for i64 inputs.
+/// Returns the largest integer n such that n*n <= x.
+#[inline]
+fn isqrt_i64(x: i64) -> i32 {
+    if x <= 0 {
+        return 0;
+    }
+    if x == 1 {
+        return 1;
+    }
+
+    let mut guess = x;
+    let mut result = (guess + 1) / 2;
+
+    while result < guess {
+        guess = result;
+        result = (guess + x / guess) / 2;
+    }
+
+    guess as i32
 }
 
 #[cfg(test)]
