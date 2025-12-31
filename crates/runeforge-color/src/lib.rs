@@ -1,7 +1,43 @@
 //! Color manipulation and conversion for roguelike development.
 //!
-//! This crate provides RGB and HSV color types with conversion, blending,
-//! and manipulation utilities optimized for terminal/ASCII graphics.
+//! # Overview
+//!
+//! `runeforge-color` provides a lightweight, efficient color system designed for
+//! roguelike development and terminal graphics. It supports:
+//!
+//! *   **RGBA Colors:** Standard 32-bit color representation.
+//! *   **HSV Conversion:** Easy conversion between RGB and HSV color spaces.
+//! *   **Blending & Manipulation:** Operations like linear interpolation (lerp), multiplication, and component-wise addition.
+//! *   **Predefined Colors:** A set of standard terminal colors (e.g., `Color::RED`, `Color::DARK_GRAY`).
+//!
+//! # Usage
+//!
+//! Add this to your `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! runeforge-color = "0.1"
+//! ```
+//!
+//! ## Basic Example
+//!
+//! ```rust
+//! use runeforge_color::Color;
+//!
+//! fn main() {
+//!     // Create colors
+//!     let red = Color::RED;
+//!     let blue = Color::rgb(0, 0, 255);
+//!
+//!     // Blend colors
+//!     let purple = red.lerp(blue, 0.5);
+//!     
+//!     // Manipulate
+//!     let dark_purple = purple.multiply(Color::grayscale(128));
+//!     
+//!     println!("Result: {}", dark_purple);
+//! }
+//! ```
 
 #![deny(missing_docs)]
 
@@ -9,6 +45,9 @@ use std::fmt;
 use std::ops::Add;
 
 /// An RGBA color represented as four 8-bit unsigned integers.
+///
+/// This struct is `Copy`, `Clone`, and generally lightweight (4 bytes).
+/// It is intended to be passed by value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(
     feature = "serialization",
@@ -26,7 +65,17 @@ pub struct Color {
 }
 
 impl Color {
-    /// Creates a new color from RGB components with full opacity.
+    /// Creates a new color from RGB components with full opacity (alpha = 255).
+    ///
+    /// # Arguments
+    ///
+    /// *   `r` - Red component (0-255)
+    /// *   `g` - Green component (0-255)
+    /// *   `b` - Blue component (0-255)
+    ///
+    /// # Returns
+    ///
+    /// A new `Color` instance with the specified RGB values and `a=255`.
     ///
     /// # Examples
     ///
@@ -44,6 +93,17 @@ impl Color {
 
     /// Creates a new color from RGBA components.
     ///
+    /// # Arguments
+    ///
+    /// *   `r` - Red component (0-255)
+    /// *   `g` - Green component (0-255)
+    /// *   `b` - Blue component (0-255)
+    /// *   `a` - Alpha component (0-255)
+    ///
+    /// # Returns
+    ///
+    /// A new `Color` instance with the specified RGBA values.
+    ///
     /// # Examples
     ///
     /// ```
@@ -58,6 +118,16 @@ impl Color {
     }
 
     /// Creates a grayscale color.
+    ///
+    /// This sets R, G, and B to the same value, with full opacity.
+    ///
+    /// # Arguments
+    ///
+    /// *   `value` - The intensity of the gray (0-255).
+    ///
+    /// # Returns
+    ///
+    /// A new `Color` instance where r=g=b=`value`.
     ///
     /// # Examples
     ///
@@ -78,8 +148,12 @@ impl Color {
     ///
     /// # Arguments
     ///
-    /// * `other` - The target color
-    /// * `t` - Interpolation factor (0.0 = self, 1.0 = other)
+    /// * `other` - The target color to interpolate towards.
+    /// * `t` - Interpolation factor (0.0 = self, 1.0 = other). Clamped to [0.0, 1.0].
+    ///
+    /// # Returns
+    ///
+    /// A new `Color` that is a blend of `self` and `other`.
     ///
     /// # Examples
     ///
@@ -105,6 +179,17 @@ impl Color {
 
     /// Multiply two colors component-wise.
     ///
+    /// This is useful for applying a tint or lighting to a color.
+    /// The operation is `(c1 * c2) / 255`.
+    ///
+    /// # Arguments
+    ///
+    /// *   `other` - The color to multiply with.
+    ///
+    /// # Returns
+    ///
+    /// A new `Color` representing the product of the two colors.
+    ///
     /// # Examples
     ///
     /// ```
@@ -124,9 +209,25 @@ impl Color {
         )
     }
 
-    /// Convert to HSV color space.
+    /// Convert the color to HSV color space.
     ///
-    /// Returns (hue: 0-360, saturation: 0-100, value: 0-100)
+    /// # Returns
+    ///
+    /// A tuple containing:
+    /// *   `hue`: 0.0 - 360.0
+    /// *   `saturation`: 0.0 - 100.0
+    /// *   `value`: 0.0 - 100.0
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use runeforge_color::Color;
+    ///
+    /// let red = Color::RED;
+    /// let (h, s, v) = red.to_hsv();
+    /// assert_eq!(h, 0.0);
+    /// assert_eq!(s, 100.0);
+    /// ```
     pub fn to_hsv(self) -> (f32, f32, f32) {
         let r = self.r as f32 / 255.0;
         let g = self.g as f32 / 255.0;
@@ -161,9 +262,23 @@ impl Color {
     ///
     /// # Arguments
     ///
-    /// * `h` - Hue (0-360)
-    /// * `s` - Saturation (0-100)
-    /// * `v` - Value (0-100)
+    /// * `h` - Hue (0.0 - 360.0)
+    /// * `s` - Saturation (0.0 - 100.0)
+    /// * `v` - Value (0.0 - 100.0)
+    ///
+    /// # Returns
+    ///
+    /// A new `Color` instance.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use runeforge_color::Color;
+    ///
+    /// // Create pure red from HSV
+    /// let red = Color::from_hsv(0.0, 100.0, 100.0);
+    /// assert_eq!(red, Color::RED);
+    /// ```
     pub fn from_hsv(h: f32, s: f32, v: f32) -> Self {
         let s = (s / 100.0).clamp(0.0, 1.0);
         let v = (v / 100.0).clamp(0.0, 1.0);

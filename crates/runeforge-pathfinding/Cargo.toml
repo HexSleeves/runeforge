@@ -12,9 +12,9 @@ readme.workspace        = true
 description             = "Pathfinding algorithms for the Runeforge roguelike library"
 
 [dependencies]
+glam               = { workspace = true }
+pathfinding        = { workspace = true }
 runeforge-geometry = { workspace = true }
-rustc-hash         = { workspace = true }
-smallvec           = { workspace = true }
 
 [dev-dependencies]
 criterion = { workspace = true }

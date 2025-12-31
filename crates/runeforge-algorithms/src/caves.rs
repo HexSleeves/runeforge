@@ -10,7 +10,7 @@
 //!
 //! ```
 //! use runeforge_algorithms::caves::{CaveConfig, CaveGenerator};
-//! use runeforge_random::Rng;
+//! use runeforge_random::prelude::Rng;
 //!
 //! let config = CaveConfig::default();
 //! let mut rng = Rng::new();
@@ -26,7 +26,7 @@
 //! }
 //! ```
 
-use runeforge_random::Rng;
+use runeforge_random::prelude::*;
 use std::fmt;
 
 /// Errors that can occur during cave generation.

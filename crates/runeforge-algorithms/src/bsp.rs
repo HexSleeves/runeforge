@@ -8,7 +8,7 @@
 //!
 //! ```
 //! use runeforge_algorithms::bsp::{BspConfig, DungeonGenerator};
-//! use runeforge_random::Rng;
+//! use runeforge_random::prelude::Rng;
 //!
 //! let config = BspConfig::default();
 //! let mut rng = Rng::new();
@@ -16,7 +16,7 @@
 //!
 //! // Access generated rooms
 //! for room in dungeon.rooms() {
-//!     println!("Room at ({}, {}) size {}x{}", room.x, room.y, room.width, room.height);
+//!     println!("Room at ({}, {}) size {}x{}", room.min.x, room.min.y, room.width(), room.height());
 //! }
 //!
 //! // Check if a tile is floor or wall
@@ -29,8 +29,8 @@
 //! }
 //! ```
 
-use runeforge_geometry::{Point, Rect};
-use runeforge_random::Rng;
+use runeforge_geometry::prelude::*;
+use runeforge_random::prelude::*;
 
 /// Configuration for BSP dungeon generation.
 ///
@@ -181,9 +181,9 @@ impl BspNode {
 
         match direction {
             SplitDirection::Horizontal => {
-                let split_y = self.bounds.y + (self.bounds.height as f32 * ratio) as i32;
-                let top_height = (split_y - self.bounds.y) as u32;
-                let bottom_height = self.bounds.height - top_height;
+                let split_y = self.bounds.min.y + (self.bounds.height() as f32 * ratio) as i32;
+                let top_height = (split_y - self.bounds.min.y) as u32;
+                let bottom_height = self.bounds.height() as u32 - top_height;
 
                 // Check minimum sizes
                 if top_height < config.min_partition_height
@@ -192,16 +192,26 @@ impl BspNode {
                     return false;
                 }
 
-                let top = Rect::new(self.bounds.x, self.bounds.y, self.bounds.width, top_height);
-                let bottom = Rect::new(self.bounds.x, split_y, self.bounds.width, bottom_height);
+                let top = Rect::new_xywh(
+                    self.bounds.min.x,
+                    self.bounds.min.y,
+                    self.bounds.width(),
+                    top_height as i32,
+                );
+                let bottom = Rect::new_xywh(
+                    self.bounds.min.x,
+                    split_y,
+                    self.bounds.width(),
+                    bottom_height as i32,
+                );
 
                 self.left = Some(Box::new(BspNode::new(top)));
                 self.right = Some(Box::new(BspNode::new(bottom)));
             }
             SplitDirection::Vertical => {
-                let split_x = self.bounds.x + (self.bounds.width as f32 * ratio) as i32;
-                let left_width = (split_x - self.bounds.x) as u32;
-                let right_width = self.bounds.width - left_width;
+                let split_x = self.bounds.min.x + (self.bounds.width() as f32 * ratio) as i32;
+                let left_width = (split_x - self.bounds.min.x) as u32;
+                let right_width = self.bounds.width() as u32 - left_width;
 
                 // Check minimum sizes
                 if left_width < config.min_partition_width
@@ -210,8 +220,18 @@ impl BspNode {
                     return false;
                 }
 
-                let left = Rect::new(self.bounds.x, self.bounds.y, left_width, self.bounds.height);
-                let right = Rect::new(split_x, self.bounds.y, right_width, self.bounds.height);
+                let left = Rect::new_xywh(
+                    self.bounds.min.x,
+                    self.bounds.min.y,
+                    left_width as i32,
+                    self.bounds.height(),
+                );
+                let right = Rect::new_xywh(
+                    split_x,
+                    self.bounds.min.y,
+                    right_width as i32,
+                    self.bounds.height(),
+                );
 
                 self.left = Some(Box::new(BspNode::new(left)));
                 self.right = Some(Box::new(BspNode::new(right)));
@@ -229,7 +249,7 @@ impl BspNode {
         }
 
         // Decide split direction based on aspect ratio with some randomness
-        let aspect = self.bounds.width as f32 / self.bounds.height as f32;
+        let aspect = self.bounds.width() as f32 / self.bounds.height() as f32;
         let direction = if aspect > 1.25 {
             SplitDirection::Vertical
         } else if aspect < 0.75 {
@@ -264,43 +284,41 @@ impl BspNode {
             return;
         }
 
-        let padding = config.room_padding;
-        let min_w = config.min_room_width;
-        let min_h = config.min_room_height;
+        let padding = config.room_padding as i32;
+        let min_w = config.min_room_width as i32;
+        let min_h = config.min_room_height as i32;
 
         // Available space after padding
-        let available_w = self.bounds.width.saturating_sub(padding * 2);
-        let available_h = self.bounds.height.saturating_sub(padding * 2);
+        let available_w = self.bounds.width().saturating_sub(padding * 2);
+        let available_h = self.bounds.height().saturating_sub(padding * 2);
 
         if available_w < min_w || available_h < min_h {
             return; // Not enough space for a room
         }
 
         // Random room size within available space (cap at available)
-        let room_w = rng.range(min_w as i32, (available_w + 1) as i32) as u32;
-        let room_w = room_w.min(available_w);
-        let room_h = rng.range(min_h as i32, (available_h + 1) as i32) as u32;
-        let room_h = room_h.min(available_h);
+        let room_w = rng.range(min_w, available_w + 1).min(available_w);
+        let room_h = rng.range(min_h, available_h + 1).min(available_h);
 
         // Random position within padded bounds (use saturating_sub to prevent overflow)
         let x_range = available_w.saturating_sub(room_w);
         let y_range = available_h.saturating_sub(room_h);
 
-        let min_x = self.bounds.x + padding as i32;
-        let min_y = self.bounds.y + padding as i32;
+        let min_x = self.bounds.min.x + padding;
+        let min_y = self.bounds.min.y + padding;
 
         let room_x = if x_range > 0 {
-            rng.range(min_x, min_x + x_range as i32 + 1)
+            rng.range(min_x, min_x + x_range + 1)
         } else {
             min_x
         };
         let room_y = if y_range > 0 {
-            rng.range(min_y, min_y + y_range as i32 + 1)
+            rng.range(min_y, min_y + y_range + 1)
         } else {
             min_y
         };
 
-        self.room = Some(Rect::new(room_x, room_y, room_w, room_h));
+        self.room = Some(Rect::new_xywh(room_x, room_y, room_w, room_h));
     }
 
     /// Creates rooms in all leaf nodes.
@@ -360,16 +378,16 @@ impl BspNode {
 #[derive(Debug, Clone)]
 pub struct Corridor {
     /// Start point of the corridor
-    pub start: Point,
+    pub start: IVec2,
     /// End point of the corridor
-    pub end: Point,
+    pub end: IVec2,
     /// The corner point for L-shaped corridors
-    pub corner: Option<Point>,
+    pub corner: Option<IVec2>,
 }
 
 impl Corridor {
     /// Creates a new straight corridor.
-    pub fn straight(start: Point, end: Point) -> Self {
+    pub fn straight(start: IVec2, end: IVec2) -> Self {
         Self {
             start,
             end,
@@ -378,7 +396,7 @@ impl Corridor {
     }
 
     /// Creates an L-shaped corridor.
-    pub fn l_shaped(start: Point, corner: Point, end: Point) -> Self {
+    pub fn l_shaped(start: IVec2, corner: IVec2, end: IVec2) -> Self {
         Self {
             start,
             end,
@@ -387,7 +405,7 @@ impl Corridor {
     }
 
     /// Returns all points along this corridor.
-    pub fn points(&self) -> Vec<Point> {
+    pub fn points(&self) -> Vec<IVec2> {
         let mut pts = Vec::new();
 
         if let Some(corner) = self.corner {
@@ -402,19 +420,19 @@ impl Corridor {
         pts
     }
 
-    fn line_points(from: Point, to: Point, pts: &mut Vec<Point>) {
+    fn line_points(from: IVec2, to: IVec2, pts: &mut Vec<IVec2>) {
         // Horizontal segment
         let x_start = from.x.min(to.x);
         let x_end = from.x.max(to.x);
         for x in x_start..=x_end {
-            pts.push(Point::new(x, from.y));
+            pts.push(IVec2::new(x, from.y));
         }
 
         // Vertical segment
         let y_start = from.y.min(to.y);
         let y_end = from.y.max(to.y);
         for y in y_start..=y_end {
-            pts.push(Point::new(to.x, y));
+            pts.push(IVec2::new(to.x, y));
         }
     }
 }
@@ -460,7 +478,7 @@ impl Dungeon {
     }
 
     /// Returns true if the position is walkable (a floor tile).
-    pub fn is_walkable(&self, pos: Point) -> bool {
+    pub fn is_walkable(&self, pos: IVec2) -> bool {
         self.is_floor(pos.x, pos.y)
     }
 
@@ -473,9 +491,7 @@ impl Dungeon {
 
     /// Carves out a room (sets all tiles to floor).
     pub fn carve_room(&mut self, room: Rect) {
-        for point in room.points() {
-            self.set_floor(point.x, point.y);
-        }
+        room.for_each(|p| self.set_floor(p.x, p.y));
         self.rooms.push(room);
     }
 
@@ -503,12 +519,12 @@ impl Dungeon {
     }
 
     /// Returns a random floor position (useful for spawning entities).
-    pub fn random_floor_position(&self, rng: &mut Rng) -> Option<Point> {
-        let floor_tiles: Vec<Point> = (0..self.height)
+    pub fn random_floor_position(&self, rng: &mut Rng) -> Option<IVec2> {
+        let floor_tiles: Vec<IVec2> = (0..self.height)
             .flat_map(|y| {
                 (0..self.width).filter_map(move |x| {
                     if self.is_floor(x as i32, y as i32) {
-                        Some(Point::new(x as i32, y as i32))
+                        Some(IVec2::new(x as i32, y as i32))
                     } else {
                         None
                     }
@@ -540,7 +556,7 @@ impl DungeonGenerator {
         let mut dungeon = Dungeon::new(width, height);
 
         // Create root BSP node covering the entire dungeon
-        let root_bounds = Rect::new(0, 0, width, height);
+        let root_bounds = Rect::new_xywh(0, 0, width as i32, height as i32);
         let mut root = BspNode::new(root_bounds);
 
         // Recursively split the space
@@ -588,11 +604,11 @@ impl DungeonGenerator {
         // Randomly choose horizontal-first or vertical-first
         if rng.chance(0.5) {
             // Horizontal first, then vertical
-            let corner = Point::new(center2.x, center1.y);
+            let corner = IVec2::new(center2.x, center1.y);
             Corridor::l_shaped(center1, corner, center2)
         } else {
             // Vertical first, then horizontal
-            let corner = Point::new(center1.x, center2.y);
+            let corner = IVec2::new(center1.x, center2.y);
             Corridor::l_shaped(center1, corner, center2)
         }
     }
@@ -625,17 +641,17 @@ mod tests {
 
     #[test]
     fn test_bsp_node_creation() {
-        let bounds = Rect::new(0, 0, 100, 100);
+        let bounds = Rect::new(IVec2::new(0, 0), IVec2::new(100, 100));
         let node = BspNode::new(bounds);
 
         assert!(node.is_leaf());
-        assert_eq!(node.bounds.width, 100);
+        assert_eq!(node.bounds.width(), 100);
         assert!(node.room.is_none());
     }
 
     #[test]
     fn test_bsp_node_split_vertical() {
-        let bounds = Rect::new(0, 0, 100, 50);
+        let bounds = Rect::new_xywh(0, 0, 100, 50);
         let mut node = BspNode::new(bounds);
         let config = BspConfig::default();
 
@@ -649,14 +665,14 @@ mod tests {
         let left = node.left().unwrap();
         let right = node.right().unwrap();
 
-        assert_eq!(left.bounds.width, 50);
-        assert_eq!(right.bounds.width, 50);
-        assert_eq!(right.bounds.x, 50);
+        assert_eq!(left.bounds.width(), 50);
+        assert_eq!(right.bounds.width(), 50);
+        assert_eq!(right.bounds.min.x, 50);
     }
 
     #[test]
     fn test_bsp_node_split_horizontal() {
-        let bounds = Rect::new(0, 0, 50, 100);
+        let bounds = Rect::new_xywh(0, 0, 50, 100);
         let mut node = BspNode::new(bounds);
         let config = BspConfig::default();
 
@@ -667,14 +683,14 @@ mod tests {
         let left = node.left().unwrap();
         let right = node.right().unwrap();
 
-        assert_eq!(left.bounds.height, 50);
-        assert_eq!(right.bounds.height, 50);
-        assert_eq!(right.bounds.y, 50);
+        assert_eq!(left.bounds.height(), 50);
+        assert_eq!(right.bounds.height(), 50);
+        assert_eq!(right.bounds.min.y, 50);
     }
 
     #[test]
     fn test_bsp_node_split_too_small() {
-        let bounds = Rect::new(0, 0, 15, 15);
+        let bounds = Rect::new_xywh(0, 0, 15, 15);
         let mut node = BspNode::new(bounds);
         let config = BspConfig::default(); // min_partition = 10
 
@@ -720,18 +736,18 @@ mod tests {
         let dungeon = DungeonGenerator::generate(80, 50, &config, &mut rng);
 
         for room in dungeon.rooms() {
-            assert!(room.x >= 0);
-            assert!(room.y >= 0);
-            assert!(room.x + room.width as i32 <= 80);
-            assert!(room.y + room.height as i32 <= 50);
+            assert!(room.min.x >= 0);
+            assert!(room.min.y >= 0);
+            assert!(room.min.x + room.width() <= 80);
+            assert!(room.min.y + room.height() <= 50);
         }
     }
 
     #[test]
     fn test_corridor_points() {
-        let start = Point::new(5, 5);
-        let end = Point::new(10, 10);
-        let corner = Point::new(10, 5);
+        let start = IVec2::new(5, 5);
+        let end = IVec2::new(10, 10);
+        let corner = IVec2::new(10, 5);
 
         let corridor = Corridor::l_shaped(start, corner, end);
         let points = corridor.points();

@@ -12,8 +12,9 @@ readme.workspace        = true
 description             = "Random number generation with roguelike-specific utilities for the Runeforge library"
 
 [dependencies]
-rand  = { workspace = true }
-serde = { workspace = true, optional = true }
+rand_core = "0.9"
+rand      = { workspace = true }
+serde     = { workspace = true, optional = true }
 
 [features]
 default       = []

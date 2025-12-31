@@ -1,39 +1,66 @@
-//! Procedural generation algorithms for roguelike games.
+//! Procedural generation algorithms for roguelike maps.
 //!
-//! This crate provides map generation algorithms including:
-//! - **BSP (Binary Space Partitioning)**: Structured dungeons with rooms and corridors
-//! - **Cellular Automata**: Organic cave systems
-//! - **Drunkard's Walk**: Irregular cave-like tunnels
+//! # Overview
 //!
-//! # Example
+//! `runeforge-algorithms` provides a collection of classic algorithms for generating game maps.
+//! These are essential for creating varied and interesting level layouts automatically.
 //!
+//! # Algorithms
+//!
+//! *   **BSP (Binary Space Partitioning):** Creates structured dungeons with rooms and corridors.
+//! *   **Cellular Automata:** Generates organic, cave-like systems.
+//! *   **Drunkard's Walk:** Produces irregular, winding cave tunnels.
+//!
+//! # Usage
+//!
+//! Add this to your `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! runeforge-algorithms = "0.1"
 //! ```
-//! use runeforge_algorithms::bsp::{BspConfig, DungeonGenerator};
-//! use runeforge_algorithms::caves::{CaveConfig, CaveGenerator};
-//! use runeforge_algorithms::drunkard::{DrunkardConfig, DrunkardGenerator};
-//! use runeforge_random::Rng;
 //!
-//! // Generate a structured BSP dungeon
-//! let config = BspConfig::default();
-//! let mut rng = Rng::new();
-//! let dungeon = DungeonGenerator::generate(80, 50, &config, &mut rng);
+//! ## BSP Dungeon Example
 //!
-//! // Generate organic caves with cellular automata
-//! let cave_config = CaveConfig::default();
-//! let cave = CaveGenerator::generate(80, 50, &cave_config, &mut rng);
+//! ```rust
+//! use runeforge_algorithms::prelude::*;
+//! use runeforge_random::prelude::Rng;
 //!
-//! // Generate irregular caves with drunkard's walk
-//! let drunkard_config = DrunkardConfig::default();
-//! let drunkard_cave = DrunkardGenerator::generate(80, 50, &drunkard_config, &mut rng);
+//! fn main() {
+//!     let config = BspConfig::default();
+//!     let mut rng = Rng::new();
+//!     let dungeon = DungeonGenerator::generate(80, 50, &config, &mut rng);
+//!     
+//!     // dungeon.rooms() returns an iterator over the rooms
+//!     for room in dungeon.rooms() {
+//!         // Draw room...
+//!         println!("Found a room: {:?}", room);
+//!     }
+//! }
 //! ```
-
-#![deny(missing_docs)]
-
+//!
+//! ## Cellular Automata Cave Example
+//!
+//! ```rust
+//! use runeforge_algorithms::prelude::*;
+//! use runeforge_random::prelude::Rng;
+//!
+//! fn main() {
+//!     let cave_config = CaveConfig::default();
+//!     let mut rng = Rng::new();
+//!     let cave = CaveGenerator::generate(80, 50, &cave_config, &mut rng);
+//!     
+//!     // cave.map is a Vec<bool> where true represents a wall
+//! }
+//! ```
 pub mod bsp;
 pub mod caves;
 pub mod drunkard;
 
-// Re-export commonly used types
-pub use bsp::{BspConfig, BspNode, Corridor, Dungeon, DungeonGenerator, SplitDirection};
-pub use caves::{CaveConfig, CaveGenerator, CaveMap};
-pub use drunkard::{DrunkardConfig, DrunkardGenerator, DrunkardMap, StartPosition};
+pub mod prelude {
+    pub use runeforge_random::prelude::Rng;
+
+    pub use crate::bsp::{BspConfig, BspNode, Corridor, Dungeon, DungeonGenerator, SplitDirection};
+    pub use crate::caves::{CaveConfig, CaveGenerator, CaveMap};
+    pub use crate::drunkard::{DrunkardConfig, DrunkardGenerator, DrunkardMap, StartPosition};
+}

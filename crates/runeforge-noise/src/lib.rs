@@ -1,20 +1,46 @@
-//! Procedural noise generation for roguelike games.
+//! Procedural noise generation for roguelike maps.
 //!
-//! This crate provides a roguelike-friendly wrapper around the `noise` crate,
-//! making it easy to generate 2D noise maps for terrain, cave systems, and
-//! dungeon layouts.
+//! # Overview
 //!
-//! # Example
+//! `runeforge-noise` provides a simple interface for generating 2D noise maps using Perlin noise.
+//! This is a fundamental tool for creating natural-looking procedural content.
+//!
+//! # Use Cases
+//!
+//! *   **Terrain:** Generating height maps for mountains and valleys.
+//! *   **Biomes:** Creating regions for different environmental types.
+//! *   **Caves:** As a base for carving out organic cave systems.
+//! *   **Textures:** Generating procedural textures for items or effects.
+//!
+//! # Usage
+//!
+//! Add this to your `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! runeforge-noise = "0.1"
+//! ```
+//!
+//! ## Basic Example
 //!
 //! ```rust
 //! use runeforge_noise::NoiseMap;
 //!
-//! // Create a 50x50 noise map with seed 42
-//! let noise_map = NoiseMap::new(50, 50, 42);
+//! fn main() {
+//!     // Create a 50x50 noise map with a specific seed
+//!     let noise_map = NoiseMap::new(50, 50, 42);
 //!
-//! // Get noise value at position (10, 20)
-//! let value = noise_map.get(10, 20);
-//! assert!(value >= -1.0 && value <= 1.0);
+//!     // Get a noise value at a specific coordinate
+//!     let value = noise_map.get(10, 20);
+//!     assert!(value >= -1.0 && value <= 1.0);
+//!
+//!     // Use a threshold to determine tile types
+//!     if noise_map.threshold(10, 20, 0.5) {
+//!         // Place a mountain tile
+//!     } else {
+//!         // Place a grass tile
+//!     }
+//! }
 //! ```
 
 #![deny(missing_docs)]

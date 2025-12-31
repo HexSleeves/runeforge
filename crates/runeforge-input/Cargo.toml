@@ -12,6 +12,7 @@ description             = "Input handling for the Runeforge roguelike library"
 readme                  = "README.md"
 
 [dependencies]
-winit = { workspace = true }
+winit               = { workspace = true }
+runeforge-direction = { workspace = true }
 
 [dev-dependencies]

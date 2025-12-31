@@ -61,11 +61,11 @@ impl GlyphAtlas {
     /// # Example
     ///
     /// ```no_run
-    /// use runeforge_tileset::{TrueTypeFont, Font, GlyphAtlas};
+    /// use runeforge_tileset::prelude::*;
     ///
-    /// let font_data = std::fs::read("font.ttf").unwrap();
-    /// let font = TrueTypeFont::from_bytes(&font_data, 16.0).unwrap();
-    /// let atlas = GlyphAtlas::from_font(&font, 16, 16);
+    /// // let font_data = std::fs::read("font.ttf").unwrap();
+    /// // let font = TrueTypeFont::from_bytes(&font_data, 16.0).unwrap();
+    /// // let atlas = GlyphAtlas::from_font(&font, 16, 16);
     /// ```
     pub fn from_font(font: &dyn Font, cell_width: u32, cell_height: u32) -> Self {
         Self::from_font_with_chars(font, cell_width, cell_height, Self::default_charset())

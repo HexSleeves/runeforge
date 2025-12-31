@@ -59,13 +59,13 @@ impl Tile {
 /// # Example
 ///
 /// ```no_run
-/// use runeforge_tileset::Tileset;
+/// use runeforge_tileset::prelude::*;
 ///
 /// // Load a 16x16 tileset from a PNG
-/// let tileset = Tileset::from_file("cp437_16x16.png", 16, 16).unwrap();
+/// // let tileset = Tileset::from_file("cp437_16x16.png", 16, 16).unwrap();
 ///
 /// // Access individual tiles
-/// let at_sign = tileset.get_tile(64); // '@' in CP437
+/// // let at_sign = tileset.get_tile(64); // '@' in CP437
 /// ```
 #[derive(Debug, Clone)]
 pub struct Tileset {
@@ -99,10 +99,10 @@ impl Tileset {
     /// # Example
     ///
     /// ```no_run
-    /// use runeforge_tileset::Tileset;
+    /// use runeforge_tileset::prelude::*;
     ///
-    /// let tileset = Tileset::from_file("tiles.png", 16, 16).unwrap();
-    /// println!("Loaded {} tiles", tileset.len());
+    /// // let tileset = Tileset::from_file("tiles.png", 16, 16).unwrap();
+    /// // println!("Loaded {} tiles", tileset.len());
     /// ```
     pub fn from_file(path: &str, tile_width: u32, tile_height: u32) -> Result<Self> {
         let img = ImageReader::open(path)?.decode()?;

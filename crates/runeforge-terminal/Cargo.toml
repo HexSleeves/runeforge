@@ -15,15 +15,19 @@ description             = "Terminal/console rendering for the Runeforge roguelik
 runeforge-color    = { workspace = true }
 runeforge-geometry = { workspace = true }
 runeforge-tileset  = { workspace = true }
-winit              = { workspace = true }
-wgpu               = { workspace = true, optional = true }
-pixels             = { workspace = true, optional = true }
-bytemuck           = { workspace = true, optional = true }
-thiserror          = { workspace = true }
+
+image     = { workspace = true }
+winit     = { workspace = true }
+thiserror = { workspace = true }
+glam      = { workspace = true }
+wgpu      = { workspace = true, optional = true }
+pixels    = { workspace = true, optional = true }
+bytemuck  = { workspace = true, optional = true }
 
 [features]
 default         = ["render-software"]
 render-wgpu     = ["wgpu", "pixels", "bytemuck"]
 render-software = []
+
 
 [dev-dependencies]

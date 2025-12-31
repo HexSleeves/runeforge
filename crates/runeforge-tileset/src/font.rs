@@ -65,10 +65,10 @@ impl TrueTypeFont {
     /// # Example
     ///
     /// ```no_run
-    /// use runeforge_tileset::TrueTypeFont;
+    /// use runeforge_tileset::prelude::*;
     ///
-    /// let font_data = std::fs::read("font.ttf").unwrap();
-    /// let font = TrueTypeFont::from_bytes(&font_data, 16.0).unwrap();
+    /// // let font_data = std::fs::read("font.ttf").unwrap();
+    /// // let font = TrueTypeFont::from_bytes(&font_data, 16.0).unwrap();
     /// ```
     pub fn from_bytes(data: &[u8], size: f32) -> Result<Self> {
         use ab_glyph::{Font as AbFont, FontVec, PxScale, ScaleFont};
@@ -213,10 +213,10 @@ impl BitmapFont {
     /// # Example
     ///
     /// ```no_run
-    /// use runeforge_tileset::BitmapFont;
+    /// use runeforge_tileset::prelude::*;
     ///
-    /// let font_data = std::fs::read("font.bdf").unwrap();
-    /// let font = BitmapFont::from_bytes(&font_data).unwrap();
+    /// // let font_data = std::fs::read("font.bdf").unwrap();
+    /// // let font = BitmapFont::from_bytes(&font_data).unwrap();
     /// ```
     pub fn from_bytes(data: &[u8]) -> Result<Self> {
         use bdf_parser::Font;

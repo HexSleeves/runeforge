@@ -1,40 +1,91 @@
-//! Input handling for roguelike games.
+//! Input handling and abstraction for roguelike games.
 //!
-//! This crate provides an action-based input abstraction layer over winit events.
-//! It supports multiple control schemes (vi-keys, numpad, arrows, WASD) and allows
-//! for custom key remapping.
+//! # Overview
 //!
-//! # Example
+//! `runeforge-input` provides an action-based input system that decouples physical input (keys, clicks)
+//! from logical game actions (Move North, Open Inventory). It supports:
+//!
+//! *   **Action Mapping:** Bind keys to `VirtualKey`s (e.g., 'i' -> `Inventory`).
+//! *   **Input State:** Track pressed keys and mouse positions.
+//! *   **Presets:** Built-in support for common roguelike schemes (Vi-keys, WASD, Numpad).
+//! *   **Rebinding:** Easily change bindings at runtime.
+//!
+//! # Usage
+//!
+//! Add this to your `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! runeforge-input = "0.1"
+//! ```
+//!
+//! ## Basic Example
 //!
 //! ```rust
-//! use runeforge_input::{InputMap, VirtualKey, Direction};
+//! use runeforge_input::{InputMap, VirtualKey, Direction, screen_delta};
 //! use winit::keyboard::KeyCode;
 //!
-//! // Create default roguelike input map
-//! let input_map = InputMap::roguelike_default();
+//! fn main() {
+//!     // 1. Create a default input map (WASD, Vi-keys, etc.)
+//!     let input_map = InputMap::roguelike_default();
 //!
-//! // Check what actions a key maps to
-//! if let Some(virtual_keys) = input_map.get(KeyCode::KeyH) {
-//!     for vkey in virtual_keys {
-//!         match vkey {
-//!             VirtualKey::Move(Direction::West) => {
-//!                 println!("'h' moves player west (vi-keys)");
+//!     // 2. Simulate a key press (usually from winit event loop)
+//!     let pressed_key = KeyCode::KeyH;
+//!
+//!     // 3. Translate to game action
+//!     if let Some(actions) = input_map.get(pressed_key) {
+//!         for action in actions {
+//!             match action {
+//!                 VirtualKey::Move(dir) => {
+//!                     // Use screen_delta for screen coordinates (Y increases downward)
+//!                     let (dx, dy) = screen_delta(*dir);
+//!                     println!("Moving by ({}, {})", dx, dy);
+//!                 }
+//!                 _ => {}
 //!             }
-//!             _ => {}
 //!         }
 //!     }
 //! }
-//!
-//! // Custom bindings
-//! let mut custom_map = InputMap::new();
-//! custom_map.bind(KeyCode::Space, VirtualKey::Confirm);
 //! ```
+//!
+//! # Coordinate Conventions
+//!
+//! This crate uses `runeforge_direction::Direction` which uses **mathematical coordinates**
+//! where North = +Y. For screen coordinates (origin top-left, Y increases downward),
+//! use the [`screen_delta`] helper function.
 
 #![deny(missing_docs)]
 
 use std::collections::{HashMap, HashSet};
 use winit::event::{KeyEvent, MouseButton as WinitMouseButton};
 use winit::keyboard::{KeyCode, PhysicalKey};
+
+// Re-export Direction from runeforge-direction
+pub use runeforge_direction::prelude::Direction;
+
+/// Convert a Direction to screen coordinates (Y increases downward).
+///
+/// This is useful for games where the origin is at the top-left corner.
+///
+/// # Example
+///
+/// ```
+/// use runeforge_input::{Direction, screen_delta};
+///
+/// // In screen coordinates, North means moving UP (negative Y)
+/// let (dx, dy) = screen_delta(Direction::NORTH);
+/// assert_eq!((dx, dy), (0, -1));
+///
+/// // South means moving DOWN (positive Y)
+/// let (dx, dy) = screen_delta(Direction::SOUTH);
+/// assert_eq!((dx, dy), (0, 1));
+/// ```
+#[inline]
+pub fn screen_delta(dir: Direction) -> (i32, i32) {
+    let coord = dir.coord();
+    // Flip Y axis for screen coordinates
+    (coord.x, -coord.y)
+}
 
 /// A virtual key representing a logical game action.
 ///
@@ -94,83 +145,6 @@ pub enum VirtualKey {
     Quit,
 }
 
-/// Cardinal and diagonal directions for movement.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Direction {
-    /// North (up)
-    North,
-    /// Northeast (up-right diagonal)
-    NorthEast,
-    /// East (right)
-    East,
-    /// Southeast (down-right diagonal)
-    SouthEast,
-    /// South (down)
-    South,
-    /// Southwest (down-left diagonal)
-    SouthWest,
-    /// West (left)
-    West,
-    /// Northwest (up-left diagonal)
-    NorthWest,
-}
-
-impl Direction {
-    /// Convert direction to delta coordinates (dx, dy).
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use runeforge_input::Direction;
-    ///
-    /// let (dx, dy) = Direction::North.to_delta();
-    /// assert_eq!((dx, dy), (0, -1));
-    ///
-    /// let (dx, dy) = Direction::NorthEast.to_delta();
-    /// assert_eq!((dx, dy), (1, -1));
-    /// ```
-    pub fn to_delta(self) -> (i32, i32) {
-        match self {
-            Direction::North => (0, -1),
-            Direction::NorthEast => (1, -1),
-            Direction::East => (1, 0),
-            Direction::SouthEast => (1, 1),
-            Direction::South => (0, 1),
-            Direction::SouthWest => (-1, 1),
-            Direction::West => (-1, 0),
-            Direction::NorthWest => (-1, -1),
-        }
-    }
-
-    /// Create a direction from delta coordinates.
-    ///
-    /// Returns `None` if the delta is (0, 0) or has components outside [-1, 1].
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use runeforge_input::Direction;
-    ///
-    /// assert_eq!(Direction::from_delta(0, -1), Some(Direction::North));
-    /// assert_eq!(Direction::from_delta(1, -1), Some(Direction::NorthEast));
-    /// assert_eq!(Direction::from_delta(0, 0), None);
-    /// assert_eq!(Direction::from_delta(2, 0), None);
-    /// ```
-    pub fn from_delta(dx: i32, dy: i32) -> Option<Self> {
-        match (dx, dy) {
-            (0, -1) => Some(Direction::North),
-            (1, -1) => Some(Direction::NorthEast),
-            (1, 0) => Some(Direction::East),
-            (1, 1) => Some(Direction::SouthEast),
-            (0, 1) => Some(Direction::South),
-            (-1, 1) => Some(Direction::SouthWest),
-            (-1, 0) => Some(Direction::West),
-            (-1, -1) => Some(Direction::NorthWest),
-            _ => None,
-        }
-    }
-}
-
 /// Mouse button identifier.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum MouseButton {
@@ -180,7 +154,7 @@ pub enum MouseButton {
     Right,
     /// Middle mouse button
     Middle,
-    /// Other mouse button
+    /// Other mouse button with ID
     Other(u16),
 }
 
@@ -273,37 +247,37 @@ impl InputMap {
         let mut map = Self::new();
 
         // Vi-keys movement (hjklyubn)
-        map.bind(KeyCode::KeyH, VirtualKey::Move(Direction::West));
-        map.bind(KeyCode::KeyJ, VirtualKey::Move(Direction::South));
-        map.bind(KeyCode::KeyK, VirtualKey::Move(Direction::North));
-        map.bind(KeyCode::KeyL, VirtualKey::Move(Direction::East));
-        map.bind(KeyCode::KeyY, VirtualKey::Move(Direction::NorthWest));
-        map.bind(KeyCode::KeyU, VirtualKey::Move(Direction::NorthEast));
-        map.bind(KeyCode::KeyB, VirtualKey::Move(Direction::SouthWest));
-        map.bind(KeyCode::KeyN, VirtualKey::Move(Direction::SouthEast));
+        map.bind(KeyCode::KeyH, VirtualKey::Move(Direction::WEST));
+        map.bind(KeyCode::KeyJ, VirtualKey::Move(Direction::SOUTH));
+        map.bind(KeyCode::KeyK, VirtualKey::Move(Direction::NORTH));
+        map.bind(KeyCode::KeyL, VirtualKey::Move(Direction::EAST));
+        map.bind(KeyCode::KeyY, VirtualKey::Move(Direction::NORTH_WEST));
+        map.bind(KeyCode::KeyU, VirtualKey::Move(Direction::NORTH_EAST));
+        map.bind(KeyCode::KeyB, VirtualKey::Move(Direction::SOUTH_WEST));
+        map.bind(KeyCode::KeyN, VirtualKey::Move(Direction::SOUTH_EAST));
 
         // Arrow keys (4-directional)
-        map.bind(KeyCode::ArrowLeft, VirtualKey::Move(Direction::West));
-        map.bind(KeyCode::ArrowRight, VirtualKey::Move(Direction::East));
-        map.bind(KeyCode::ArrowUp, VirtualKey::Move(Direction::North));
-        map.bind(KeyCode::ArrowDown, VirtualKey::Move(Direction::South));
+        map.bind(KeyCode::ArrowLeft, VirtualKey::Move(Direction::WEST));
+        map.bind(KeyCode::ArrowRight, VirtualKey::Move(Direction::EAST));
+        map.bind(KeyCode::ArrowUp, VirtualKey::Move(Direction::NORTH));
+        map.bind(KeyCode::ArrowDown, VirtualKey::Move(Direction::SOUTH));
 
         // WASD (4-directional)
-        map.bind(KeyCode::KeyA, VirtualKey::Move(Direction::West));
-        map.bind(KeyCode::KeyD, VirtualKey::Move(Direction::East));
-        map.bind(KeyCode::KeyW, VirtualKey::Move(Direction::North));
-        map.bind(KeyCode::KeyS, VirtualKey::Move(Direction::South));
+        map.bind(KeyCode::KeyA, VirtualKey::Move(Direction::WEST));
+        map.bind(KeyCode::KeyD, VirtualKey::Move(Direction::EAST));
+        map.bind(KeyCode::KeyW, VirtualKey::Move(Direction::NORTH));
+        map.bind(KeyCode::KeyS, VirtualKey::Move(Direction::SOUTH));
 
         // Numpad movement (8-directional)
-        map.bind(KeyCode::Numpad1, VirtualKey::Move(Direction::SouthWest));
-        map.bind(KeyCode::Numpad2, VirtualKey::Move(Direction::South));
-        map.bind(KeyCode::Numpad3, VirtualKey::Move(Direction::SouthEast));
-        map.bind(KeyCode::Numpad4, VirtualKey::Move(Direction::West));
+        map.bind(KeyCode::Numpad1, VirtualKey::Move(Direction::SOUTH_WEST));
+        map.bind(KeyCode::Numpad2, VirtualKey::Move(Direction::SOUTH));
+        map.bind(KeyCode::Numpad3, VirtualKey::Move(Direction::SOUTH_EAST));
+        map.bind(KeyCode::Numpad4, VirtualKey::Move(Direction::WEST));
         map.bind(KeyCode::Numpad5, VirtualKey::Wait);
-        map.bind(KeyCode::Numpad6, VirtualKey::Move(Direction::East));
-        map.bind(KeyCode::Numpad7, VirtualKey::Move(Direction::NorthWest));
-        map.bind(KeyCode::Numpad8, VirtualKey::Move(Direction::North));
-        map.bind(KeyCode::Numpad9, VirtualKey::Move(Direction::NorthEast));
+        map.bind(KeyCode::Numpad6, VirtualKey::Move(Direction::EAST));
+        map.bind(KeyCode::Numpad7, VirtualKey::Move(Direction::NORTH_WEST));
+        map.bind(KeyCode::Numpad8, VirtualKey::Move(Direction::NORTH));
+        map.bind(KeyCode::Numpad9, VirtualKey::Move(Direction::NORTH_EAST));
 
         // Wait/Rest
         map.bind(KeyCode::Period, VirtualKey::Wait);
@@ -340,7 +314,7 @@ impl InputMap {
     /// use winit::keyboard::KeyCode;
     ///
     /// let mut map = InputMap::new();
-    /// map.bind(KeyCode::ArrowUp, VirtualKey::Move(Direction::North));
+    /// map.bind(KeyCode::ArrowUp, VirtualKey::Move(Direction::NORTH));
     /// ```
     pub fn bind(&mut self, key: KeyCode, virtual_key: VirtualKey) {
         self.mappings.entry(key).or_default().push(virtual_key);
@@ -460,46 +434,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_direction_to_delta() {
-        assert_eq!(Direction::North.to_delta(), (0, -1));
-        assert_eq!(Direction::NorthEast.to_delta(), (1, -1));
-        assert_eq!(Direction::East.to_delta(), (1, 0));
-        assert_eq!(Direction::SouthEast.to_delta(), (1, 1));
-        assert_eq!(Direction::South.to_delta(), (0, 1));
-        assert_eq!(Direction::SouthWest.to_delta(), (-1, 1));
-        assert_eq!(Direction::West.to_delta(), (-1, 0));
-        assert_eq!(Direction::NorthWest.to_delta(), (-1, -1));
-    }
-
-    #[test]
-    fn test_direction_from_delta() {
-        assert_eq!(Direction::from_delta(0, -1), Some(Direction::North));
-        assert_eq!(Direction::from_delta(1, -1), Some(Direction::NorthEast));
-        assert_eq!(Direction::from_delta(1, 0), Some(Direction::East));
-        assert_eq!(Direction::from_delta(1, 1), Some(Direction::SouthEast));
-        assert_eq!(Direction::from_delta(0, 1), Some(Direction::South));
-        assert_eq!(Direction::from_delta(-1, 1), Some(Direction::SouthWest));
-        assert_eq!(Direction::from_delta(-1, 0), Some(Direction::West));
-        assert_eq!(Direction::from_delta(-1, -1), Some(Direction::NorthWest));
-        assert_eq!(Direction::from_delta(0, 0), None);
-        assert_eq!(Direction::from_delta(2, 0), None);
-    }
-
-    #[test]
-    fn test_direction_roundtrip() {
-        for dir in [
-            Direction::North,
-            Direction::NorthEast,
-            Direction::East,
-            Direction::SouthEast,
-            Direction::South,
-            Direction::SouthWest,
-            Direction::West,
-            Direction::NorthWest,
-        ] {
-            let (dx, dy) = dir.to_delta();
-            assert_eq!(Direction::from_delta(dx, dy), Some(dir));
-        }
+    fn test_screen_delta() {
+        // North should be (0, -1) in screen coordinates
+        assert_eq!(screen_delta(Direction::NORTH), (0, -1));
+        assert_eq!(screen_delta(Direction::SOUTH), (0, 1));
+        assert_eq!(screen_delta(Direction::EAST), (1, 0));
+        assert_eq!(screen_delta(Direction::WEST), (-1, 0));
+        assert_eq!(screen_delta(Direction::NORTH_EAST), (1, -1));
+        assert_eq!(screen_delta(Direction::SOUTH_WEST), (-1, 1));
     }
 
     #[test]
@@ -509,19 +451,19 @@ mod tests {
         assert!(map
             .get(KeyCode::KeyH)
             .unwrap()
-            .contains(&VirtualKey::Move(Direction::West)));
+            .contains(&VirtualKey::Move(Direction::WEST)));
         assert!(map
             .get(KeyCode::KeyJ)
             .unwrap()
-            .contains(&VirtualKey::Move(Direction::South)));
+            .contains(&VirtualKey::Move(Direction::SOUTH)));
         assert!(map
             .get(KeyCode::KeyK)
             .unwrap()
-            .contains(&VirtualKey::Move(Direction::North)));
+            .contains(&VirtualKey::Move(Direction::NORTH)));
         assert!(map
             .get(KeyCode::KeyL)
             .unwrap()
-            .contains(&VirtualKey::Move(Direction::East)));
+            .contains(&VirtualKey::Move(Direction::EAST)));
     }
 
     #[test]
@@ -531,15 +473,15 @@ mod tests {
         assert!(map
             .get(KeyCode::Numpad7)
             .unwrap()
-            .contains(&VirtualKey::Move(Direction::NorthWest)));
+            .contains(&VirtualKey::Move(Direction::NORTH_WEST)));
         assert!(map
             .get(KeyCode::Numpad8)
             .unwrap()
-            .contains(&VirtualKey::Move(Direction::North)));
+            .contains(&VirtualKey::Move(Direction::NORTH)));
         assert!(map
             .get(KeyCode::Numpad9)
             .unwrap()
-            .contains(&VirtualKey::Move(Direction::NorthEast)));
+            .contains(&VirtualKey::Move(Direction::NORTH_EAST)));
         assert!(map
             .get(KeyCode::Numpad5)
             .unwrap()
@@ -553,19 +495,19 @@ mod tests {
         assert!(map
             .get(KeyCode::ArrowUp)
             .unwrap()
-            .contains(&VirtualKey::Move(Direction::North)));
+            .contains(&VirtualKey::Move(Direction::NORTH)));
         assert!(map
             .get(KeyCode::ArrowDown)
             .unwrap()
-            .contains(&VirtualKey::Move(Direction::South)));
+            .contains(&VirtualKey::Move(Direction::SOUTH)));
         assert!(map
             .get(KeyCode::ArrowLeft)
             .unwrap()
-            .contains(&VirtualKey::Move(Direction::West)));
+            .contains(&VirtualKey::Move(Direction::WEST)));
         assert!(map
             .get(KeyCode::ArrowRight)
             .unwrap()
-            .contains(&VirtualKey::Move(Direction::East)));
+            .contains(&VirtualKey::Move(Direction::EAST)));
     }
 
     #[test]

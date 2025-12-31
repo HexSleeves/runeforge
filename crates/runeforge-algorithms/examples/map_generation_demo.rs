@@ -2,11 +2,11 @@
 //!
 //! Run with: `cargo run --example map_generation_demo`
 
-use runeforge_algorithms::{
+use runeforge_algorithms::prelude::{
     BspConfig, CaveConfig, CaveGenerator, DrunkardConfig, DrunkardGenerator, DungeonGenerator,
     StartPosition,
 };
-use runeforge_random::Rng;
+use runeforge_random::prelude::*;
 
 const MAP_WIDTH: u32 = 80;
 const MAP_HEIGHT: u32 = 40;

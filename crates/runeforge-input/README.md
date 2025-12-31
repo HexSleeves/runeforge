@@ -237,14 +237,14 @@ The input system design is based on roguelike community best practices:
 
 ## Examples
 
-See the `runeforge-pixels` crate for complete working examples:
+See the `runeforge-terminal` crate for complete working examples:
 
 ```bash
 # TrueType font roguelike with full input support
-cargo run --example windowed_roguelike --package runeforge-pixels
+cargo run --example windowed_roguelike --package runeforge-terminal
 
 # Tileset roguelike with full input support
-cargo run --example windowed_tileset_roguelike --package runeforge-pixels
+cargo run --example windowed_tileset_roguelike --package runeforge-terminal
 ```
 
 Both examples support all control schemes (vi-keys, numpad, arrows, WASD) out of the box!

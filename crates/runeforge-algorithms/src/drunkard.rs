@@ -11,7 +11,7 @@
 //!
 //! ```
 //! use runeforge_algorithms::drunkard::{DrunkardConfig, DrunkardGenerator};
-//! use runeforge_random::Rng;
+//! use runeforge_random::prelude::Rng;
 //!
 //! let config = DrunkardConfig::default();
 //! let mut rng = Rng::new();
@@ -26,7 +26,7 @@
 //! }
 //! ```
 
-use runeforge_random::Rng;
+use runeforge_random::prelude::*;
 use std::fmt;
 
 /// Errors that can occur during drunkard's walk generation.
