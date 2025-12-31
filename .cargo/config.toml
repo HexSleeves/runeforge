@@ -45,11 +45,11 @@ rustdocflags = ["-C", "linker=rust-lld.exe"]
 ci = "run --package ci --"
 
 # Cranelift backend for faster debug builds (if available)
-[unstable]
-codegen-backend = true
+# [unstable]
+# codegen-backend = true
 
-[profile.dev]
-codegen-backend = "cranelift"
+# [profile.dev]
+# codegen-backend = "cranelift"
 
-[profile.dev.package."*"]
-codegen-backend = "llvm"
+# [profile.dev.package."*"]
+# codegen-backend = "llvm"
