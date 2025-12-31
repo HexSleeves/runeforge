@@ -9,9 +9,9 @@
 //! - Q: Quit
 
 use runeforge_color::Color;
-use runeforge_fov::compute_fov;
-use runeforge_geometry::Point;
-use runeforge_terminal::Terminal;
+use runeforge_fov::prelude::{Fov, FovProvider};
+use runeforge_geometry::prelude::IVec2;
+use runeforge_terminal::prelude::Terminal;
 use std::io::{self, Read};
 
 /// Represents the game map
@@ -63,7 +63,7 @@ impl Map {
     }
 
     /// Returns true if the position is a wall
-    fn is_blocking(&self, pos: Point) -> bool {
+    fn is_blocking(&self, pos: IVec2) -> bool {
         if pos.x < 0 || pos.y < 0 || pos.x >= self.width as i32 || pos.y >= self.height as i32 {
             return true; // Out of bounds is blocking
         }
@@ -72,15 +72,22 @@ impl Map {
     }
 
     /// Returns true if the position is walkable
-    fn is_walkable(&self, pos: Point) -> bool {
+    fn is_walkable(&self, pos: IVec2) -> bool {
         !self.is_blocking(pos)
+    }
+}
+
+/// Implement FovProvider for Map so it can provide opacity info to the FOV algorithm
+impl FovProvider<()> for Map {
+    fn is_opaque(&mut self, pos: IVec2, _data: &mut ()) -> bool {
+        self.is_blocking(pos)
     }
 }
 
 /// The game state
 struct Game {
     map: Map,
-    player_pos: Point,
+    player_pos: IVec2,
     fov_radius: i32,
     visible: Vec<bool>,
 }
@@ -88,7 +95,7 @@ struct Game {
 impl Game {
     fn new() -> Self {
         let map = Map::new(60, 20);
-        let player_pos = Point::new(5, 10);
+        let player_pos = IVec2::new(5, 10);
         let visible = vec![false; (map.width * map.height) as usize];
 
         let mut game = Self {
@@ -109,27 +116,26 @@ impl Game {
             *v = false;
         }
 
-        // Compute new FOV
-        compute_fov(
-            self.player_pos,
-            self.fov_radius,
-            &|p| self.map.is_blocking(p),
-            &mut |p| {
-                if p.x >= 0
-                    && p.y >= 0
-                    && p.x < self.map.width as i32
-                    && p.y < self.map.height as i32
-                {
-                    let index = (p.y as u32 * self.map.width + p.x as u32) as usize;
-                    self.visible[index] = true;
-                }
-            },
-        );
+        // Compute new FOV using Shadowcast algorithm
+        let visible_tiles =
+            Fov::Shadowcast.compute(self.player_pos, self.fov_radius as u32, &mut self.map, ());
+
+        // Mark visible tiles
+        for pos in visible_tiles {
+            if pos.x >= 0
+                && pos.y >= 0
+                && pos.x < self.map.width as i32
+                && pos.y < self.map.height as i32
+            {
+                let index = (pos.y as u32 * self.map.width + pos.x as u32) as usize;
+                self.visible[index] = true;
+            }
+        }
     }
 
     /// Move the player in the given direction
     fn move_player(&mut self, dx: i32, dy: i32) {
-        let new_pos = Point::new(self.player_pos.x + dx, self.player_pos.y + dy);
+        let new_pos = IVec2::new(self.player_pos.x + dx, self.player_pos.y + dy);
         if self.map.is_walkable(new_pos) {
             self.player_pos = new_pos;
             self.update_fov();
@@ -143,7 +149,7 @@ impl Game {
         // Draw the map
         for y in 0..self.map.height {
             for x in 0..self.map.width {
-                let pos = Point::new(x as i32, y as i32);
+                let pos = IVec2::new(x as i32, y as i32);
                 let index = (y * self.map.width + x) as usize;
                 let is_wall = self.map.tiles[index];
                 let is_visible = self.visible[index];
@@ -172,7 +178,7 @@ impl Game {
         // Draw instructions at the bottom
         let help_y = self.map.height as i32;
         term.put_string(
-            Point::new(0, help_y),
+            IVec2::new(0, help_y),
             "Arrow keys/WASD: Move | Q: Quit | FOV Radius: 8",
             Color::WHITE,
             Color::BLACK,

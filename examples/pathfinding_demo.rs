@@ -3,8 +3,9 @@
 //! This example demonstrates the A* pathfinding algorithm by showing
 //! a character finding paths through a map with obstacles.
 
-use runeforge_geometry::Point;
-use runeforge_pathfinding::{astar, astar_8dir};
+use runeforge_geometry::prelude::IVec2;
+use runeforge_pathfinding::prelude::{PathFinder, PathProvider};
+use std::collections::HashSet;
 use std::io::{self, Write};
 use std::thread;
 use std::time::Duration;
@@ -66,7 +67,7 @@ impl Map {
     }
 
     /// Returns true if the position is a wall
-    fn is_blocking(&self, pos: Point) -> bool {
+    fn is_blocking(&self, pos: IVec2) -> bool {
         if pos.x < 0 || pos.y < 0 || pos.x >= self.width as i32 || pos.y >= self.height as i32 {
             return true; // Out of bounds is blocking
         }
@@ -75,8 +76,37 @@ impl Map {
     }
 
     /// Returns true if the position is walkable
-    fn is_walkable(&self, pos: Point) -> bool {
+    fn is_walkable(&self, pos: IVec2) -> bool {
         !self.is_blocking(pos)
+    }
+}
+
+/// Implement PathProvider for Map
+impl PathProvider<()> for Map {
+    fn get_neighbors(&self, pos: IVec2, _data: &mut ()) -> Vec<IVec2> {
+        let mut neighbors = Vec::new();
+        // Cardinal directions (4-directional)
+        let directions = [
+            IVec2::new(1, 0),
+            IVec2::new(-1, 0),
+            IVec2::new(0, 1),
+            IVec2::new(0, -1),
+        ];
+        for dir in directions {
+            let new_pos = pos + dir;
+            if self.is_walkable(new_pos) {
+                neighbors.push(new_pos);
+            }
+        }
+        neighbors
+    }
+
+    fn cost(&self, _from: IVec2, to: IVec2, _data: &mut ()) -> u32 {
+        if self.is_walkable(to) {
+            1
+        } else {
+            u32::MAX
+        }
     }
 }
 
@@ -87,17 +117,17 @@ fn clear_screen() {
 }
 
 /// Render the map with optional path
-fn render_map(map: &Map, path: Option<&Vec<Point>>, start: Point, goal: Point) {
+fn render_map(map: &Map, path: Option<&Vec<IVec2>>, start: IVec2, goal: IVec2) {
     clear_screen();
 
     // Convert path to a set for fast lookup
-    let path_set: std::collections::HashSet<Point> = path
+    let path_set: HashSet<IVec2> = path
         .map(|p| p.iter().copied().collect())
         .unwrap_or_default();
 
     for y in 0..map.height {
         for x in 0..map.width {
-            let pos = Point::new(x as i32, y as i32);
+            let pos = IVec2::new(x as i32, y as i32);
             let is_wall = map.tiles[(y * map.width + x) as usize];
 
             let (ch, color_code) = if pos == start {
@@ -119,6 +149,49 @@ fn render_map(map: &Map, path: Option<&Vec<Point>>, start: Point, goal: Point) {
     println!();
 }
 
+/// 8-directional path provider for comparison
+struct Map8Dir {
+    map: Map,
+}
+
+impl Map8Dir {
+    fn new(map: Map) -> Self {
+        Self { map }
+    }
+}
+
+impl PathProvider<()> for Map8Dir {
+    fn get_neighbors(&self, pos: IVec2, _data: &mut ()) -> Vec<IVec2> {
+        let mut neighbors = Vec::new();
+        // 8-directional movement
+        for dy in -1..=1 {
+            for dx in -1..=1 {
+                if dx == 0 && dy == 0 {
+                    continue;
+                }
+                let new_pos = pos + IVec2::new(dx, dy);
+                if self.map.is_walkable(new_pos) {
+                    neighbors.push(new_pos);
+                }
+            }
+        }
+        neighbors
+    }
+
+    fn cost(&self, from: IVec2, to: IVec2, _data: &mut ()) -> u32 {
+        if self.map.is_walkable(to) {
+            // Diagonal movement costs more
+            if from.x != to.x && from.y != to.y {
+                14 // Approximate sqrt(2) * 10
+            } else {
+                10
+            }
+        } else {
+            u32::MAX
+        }
+    }
+}
+
 fn main() -> io::Result<()> {
     println!("\n=== Runeforge Pathfinding Demo ===\n");
     println!("This demo shows the A* pathfinding algorithm finding paths through a maze.");
@@ -132,102 +205,92 @@ fn main() -> io::Result<()> {
     let mut input = String::new();
     io::stdin().read_line(&mut input)?;
 
-    let map = Map::new(50, 20);
+    let mut map = Map::new(50, 20);
 
     // Demo 1: Simple path
     println!("\n--- Demo 1: Simple 4-directional path ---");
-    let start1 = Point::new(2, 2);
-    let goal1 = Point::new(8, 2);
+    let start1 = IVec2::new(2, 2);
+    let goal1 = IVec2::new(8, 2);
 
     render_map(&map, None, start1, goal1);
     println!("Finding path from @ to X...");
     thread::sleep(Duration::from_secs(1));
 
-    let path1 = astar(start1, goal1, &|p| map.is_walkable(p), None);
-    render_map(&map, path1.as_ref(), start1, goal1);
-    if let Some(p) = &path1 {
-        println!("Path found! Length: {} steps", p.len());
-    }
+    let path1: Vec<IVec2> = PathFinder::Astar.compute(start1, goal1, &mut map, ());
+    render_map(&map, Some(&path1), start1, goal1);
+    println!("Path found! Length: {} steps", path1.len());
     thread::sleep(Duration::from_secs(2));
 
     // Demo 2: Path around obstacles
     println!("\n--- Demo 2: Navigating around walls ---");
-    let start2 = Point::new(2, 2);
-    let goal2 = Point::new(22, 2);
+    let start2 = IVec2::new(2, 2);
+    let goal2 = IVec2::new(22, 2);
 
     render_map(&map, None, start2, goal2);
     println!("Finding path around the wall...");
     thread::sleep(Duration::from_secs(1));
 
-    let path2 = astar(start2, goal2, &|p| map.is_walkable(p), None);
-    render_map(&map, path2.as_ref(), start2, goal2);
-    if let Some(p) = &path2 {
-        println!("Path found! Length: {} steps", p.len());
-        println!("Notice how A* finds the optimal route around the obstacles.");
-    }
+    let path2: Vec<IVec2> = PathFinder::Astar.compute(start2, goal2, &mut map, ());
+    render_map(&map, Some(&path2), start2, goal2);
+    println!("Path found! Length: {} steps", path2.len());
+    println!("Notice how A* finds the optimal route around the obstacles.");
     thread::sleep(Duration::from_secs(3));
 
     // Demo 3: Complex maze navigation
     println!("\n--- Demo 3: Complex maze navigation ---");
-    let start3 = Point::new(2, 2);
-    let goal3 = Point::new(40, 15);
+    let start3 = IVec2::new(2, 2);
+    let goal3 = IVec2::new(40, 15);
 
     render_map(&map, None, start3, goal3);
     println!("Finding path through the complex maze...");
     thread::sleep(Duration::from_secs(1));
 
-    let path3 = astar(start3, goal3, &|p| map.is_walkable(p), None);
-    render_map(&map, path3.as_ref(), start3, goal3);
-    if let Some(p) = &path3 {
-        println!("Path found! Length: {} steps", p.len());
-        println!("A* efficiently navigates through multiple obstacles!");
-    }
+    let path3: Vec<IVec2> = PathFinder::Astar.compute(start3, goal3, &mut map, ());
+    render_map(&map, Some(&path3), start3, goal3);
+    println!("Path found! Length: {} steps", path3.len());
+    println!("A* efficiently navigates through multiple obstacles!");
     thread::sleep(Duration::from_secs(3));
 
     // Demo 4: 8-directional vs 4-directional
     println!("\n--- Demo 4: Comparing 4-directional vs 8-directional ---");
-    let start4 = Point::new(2, 10);
-    let goal4 = Point::new(10, 18);
+    let start4 = IVec2::new(2, 10);
+    let goal4 = IVec2::new(10, 18);
 
     render_map(&map, None, start4, goal4);
     println!("4-directional path (cardinal directions only)...");
     thread::sleep(Duration::from_secs(1));
 
-    let path4_4dir = astar(start4, goal4, &|p| map.is_walkable(p), None);
-    render_map(&map, path4_4dir.as_ref(), start4, goal4);
-    if let Some(p) = &path4_4dir {
-        println!("4-directional path length: {} steps", p.len());
-    }
+    let path4_4dir: Vec<IVec2> = PathFinder::Astar.compute(start4, goal4, &mut map, ());
+    render_map(&map, Some(&path4_4dir), start4, goal4);
+    println!("4-directional path length: {} steps", path4_4dir.len());
     thread::sleep(Duration::from_secs(2));
 
     println!("\nNow trying 8-directional (with diagonals)...");
     thread::sleep(Duration::from_secs(1));
 
-    let path4_8dir = astar_8dir(start4, goal4, &|p| map.is_walkable(p), None);
-    render_map(&map, path4_8dir.as_ref(), start4, goal4);
-    if let Some(p) = &path4_8dir {
-        println!("8-directional path length: {} steps", p.len());
-        if let Some(p4) = &path4_4dir {
-            println!(
-                "8-directional saved {} steps by cutting corners!",
-                p4.len() - p.len()
-            );
-        }
-    }
+    // Create a new map for 8-directional demo (don't consume the original map)
+    let mut map8 = Map8Dir::new(Map::new(50, 20));
+    let path4_8dir: Vec<IVec2> = PathFinder::Astar.compute(start4, goal4, &mut map8, ());
+    render_map(&map8.map, Some(&path4_8dir), start4, goal4);
+    println!("8-directional path length: {} steps", path4_8dir.len());
+    println!(
+        "8-directional saved {} steps by cutting corners!",
+        path4_4dir.len() - path4_8dir.len()
+    );
     thread::sleep(Duration::from_secs(3));
 
     // Demo 5: No path scenario
     println!("\n--- Demo 5: When there's no path ---");
-    let start5 = Point::new(2, 2);
-    let goal5 = Point::new(40, 2); // Behind walls with no gap
+    let start5 = IVec2::new(2, 2);
+    let goal5 = IVec2::new(40, 2); // Behind walls with no gap
 
     render_map(&map, None, start5, goal5);
     println!("Trying to find a path to an unreachable location...");
     thread::sleep(Duration::from_secs(1));
 
-    let path5 = astar(start5, goal5, &|p| map.is_walkable(p), None);
-    render_map(&map, path5.as_ref(), start5, goal5);
-    if path5.is_none() {
+    let path5: Vec<IVec2> = PathFinder::Astar.compute(start5, goal5, &mut map, ());
+    render_map(&map, Some(&path5), start5, goal5);
+    if path5.is_empty() {
         println!("No path found! A* correctly identified this goal is unreachable.");
     }
     thread::sleep(Duration::from_secs(2));

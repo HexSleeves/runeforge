@@ -32,20 +32,25 @@ Or run the compiled binary directly:
 The game supports multiple control schemes via `runeforge-input`:
 
 **Arrow Keys**
+
 - ↑ ↓ ← → : Move in cardinal directions
 
 **WASD**
+
 - W A S D : Move in cardinal directions
 
 **Vi-keys** (for roguelike purists)
+
 - h j k l : Move left, down, up, right
 - y u b n : Move diagonally (NW, NE, SW, SE)
 
 **Numpad**
+
 - 8 4 6 2 : Cardinal movement
 - 7 9 1 3 : Diagonal movement
 
 **Other**
+
 - ESC : Quit the game
 
 ### Gameplay
@@ -71,7 +76,7 @@ pixels 0.15 - GPU-accelerated pixel buffer (via wgpu)
 runeforge-algorithms - BSP dungeon generation
 runeforge-fov - Symmetric shadowcasting
 runeforge-input - Virtual key mapping
-runeforge-geometry - Point-based positioning
+runeforge-geometry - IVec2-based positioning
 runeforge-random - Deterministic RNG
 ```
 
@@ -111,12 +116,14 @@ runeforge-random - Deterministic RNG
 ## Graphics Backend
 
 The demo uses **pixels** which provides:
+
 - **wgpu** for modern graphics APIs (Vulkan, Metal, DX12, OpenGL ES3)
 - **Automatic scaling** from pixel buffer to window
 - **Custom shaders** support (not used in this demo)
 - **Cross-platform** rendering
 
 Sources:
+
 - [Pixels Documentation](https://docs.rs/crate/pixels/latest)
 - [Pixels GitHub](https://github.com/parasyte/pixels)
 - [Building Conway's Game of Life in Rust](https://www.40tude.fr/docs/06_programmation/rust/017_game_of_life/game_of_life_00.html)
@@ -124,17 +131,20 @@ Sources:
 ## Tileset
 
 The demo uses **terminal8x8_gs_ro.png** from the libtcod library:
+
 - **Size**: 8x8 pixels per character
 - **Format**: Greyscale, row layout, CP437 encoding
 - **Grid**: 16x16 characters (256 glyphs total)
 - **License**: Part of libtcod (BSD-3-Clause)
 
 Source:
+
 - [libtcod Python TCOD Fonts](https://github.com/libtcod/python-tcod/tree/main/fonts/libtcod)
 
 ## Future Enhancements
 
 Potential additions to showcase more Runeforge features:
+
 - Enemies with AI pathfinding
 - Items and inventory system
 - Combat mechanics

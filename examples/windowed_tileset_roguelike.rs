@@ -13,13 +13,13 @@
 //!
 //! Run with: cargo run --example windowed_tileset_roguelike
 
-use pixels::{Pixels, SurfaceTexture};
 use runeforge_color::Color;
-use runeforge_console::Console;
-use runeforge_geometry::Point;
+use runeforge_geometry::prelude::IVec2;
 use runeforge_input::{InputMap, VirtualKey};
-use runeforge_pixels::PixelsRenderer;
-use runeforge_tileset::Tileset;
+use runeforge_terminal::prelude::{Console, PixelsRenderer};
+use runeforge_tileset::prelude::Tileset;
+
+use pixels::{Pixels, SurfaceTexture};
 use winit::application::ApplicationHandler;
 use winit::event::{ElementState, KeyEvent, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
@@ -33,18 +33,18 @@ struct Game {
     window: Option<&'static Window>,
     pixels: Option<Pixels<'static>>,
     renderer: PixelsRenderer,
-    player_pos: Point,
+    player_pos: IVec2,
     input_map: InputMap,
 }
 
 impl Game {
-    fn new(tileset: &dyn runeforge_tileset::Font) -> Self {
+    fn new(tileset: &dyn runeforge_tileset::prelude::Font) -> Self {
         let renderer = PixelsRenderer::new(CONSOLE_WIDTH, CONSOLE_HEIGHT, tileset);
         Self {
             window: None,
             pixels: None,
             renderer,
-            player_pos: Point::new(40, 12),
+            player_pos: IVec2::new(40, 12),
             input_map: InputMap::roguelike_default(),
         }
     }
@@ -66,7 +66,7 @@ impl Game {
 
         // Draw title
         self.renderer.draw_string(
-            Point::new(27, 0),
+            IVec2::new(27, 0),
             " TILESET ROGUELIKE ",
             Color::YELLOW,
             Color::BLACK,
@@ -76,41 +76,41 @@ impl Game {
         for y in 2..23 {
             for x in 2..78 {
                 self.renderer
-                    .draw_char(Point::new(x, y), '.', Color::DARK_GRAY, Color::BLACK);
+                    .draw_char(IVec2::new(x, y), '.', Color::DARK_GRAY, Color::BLACK);
             }
         }
 
         // Draw walls with # character
         for y in 5..18 {
             self.renderer
-                .draw_char(Point::new(20, y), '#', Color::WHITE, Color::BLACK);
+                .draw_char(IVec2::new(20, y), '#', Color::WHITE, Color::BLACK);
             self.renderer
-                .draw_char(Point::new(60, y), '#', Color::WHITE, Color::BLACK);
+                .draw_char(IVec2::new(60, y), '#', Color::WHITE, Color::BLACK);
         }
         for x in 20..=60 {
             self.renderer
-                .draw_char(Point::new(x, 5), '#', Color::WHITE, Color::BLACK);
+                .draw_char(IVec2::new(x, 5), '#', Color::WHITE, Color::BLACK);
             self.renderer
-                .draw_char(Point::new(x, 17), '#', Color::WHITE, Color::BLACK);
+                .draw_char(IVec2::new(x, 17), '#', Color::WHITE, Color::BLACK);
         }
 
         // Draw doors
         self.renderer
-            .draw_char(Point::new(40, 5), '+', Color::BROWN, Color::BLACK);
+            .draw_char(IVec2::new(40, 5), '+', Color::BROWN, Color::BLACK);
         self.renderer
-            .draw_char(Point::new(40, 17), '+', Color::BROWN, Color::BLACK);
+            .draw_char(IVec2::new(40, 17), '+', Color::BROWN, Color::BLACK);
 
         // Draw some monsters
         self.renderer
-            .draw_char(Point::new(30, 10), 'g', Color::GREEN, Color::BLACK);
+            .draw_char(IVec2::new(30, 10), 'g', Color::GREEN, Color::BLACK);
         self.renderer
-            .draw_char(Point::new(50, 12), 'o', Color::RED, Color::BLACK);
+            .draw_char(IVec2::new(50, 12), 'o', Color::RED, Color::BLACK);
 
         // Draw items
         self.renderer
-            .draw_char(Point::new(35, 8), '!', Color::MAGENTA, Color::BLACK);
+            .draw_char(IVec2::new(35, 8), '!', Color::MAGENTA, Color::BLACK);
         self.renderer.draw_char(
-            Point::new(45, 14),
+            IVec2::new(45, 14),
             '/',
             Color::rgb(139, 69, 19),
             Color::BLACK,
@@ -125,7 +125,7 @@ impl Game {
             .draw_hline(23, 1, 78, '─', Color::GRAY, Color::BLACK);
 
         self.renderer.draw_string(
-            Point::new(2, 24),
+            IVec2::new(2, 24),
             &format!(
                 "Position: ({:2}, {:2})",
                 self.player_pos.x, self.player_pos.y
@@ -135,14 +135,14 @@ impl Game {
         );
 
         self.renderer.draw_string(
-            Point::new(25, 24),
+            IVec2::new(25, 24),
             "CP437 Tileset",
             Color::YELLOW,
             Color::BLACK,
         );
 
         self.renderer.draw_string(
-            Point::new(42, 24),
+            IVec2::new(42, 24),
             "Arrow/Vi-keys/Numpad",
             Color::rgb(100, 150, 255),
             Color::BLACK,
@@ -153,7 +153,7 @@ impl Game {
     }
 
     fn move_player(&mut self, dx: i32, dy: i32) {
-        let new_pos = Point::new(
+        let new_pos = IVec2::new(
             (self.player_pos.x + dx).clamp(2, 77),
             (self.player_pos.y + dy).clamp(2, 22),
         );
@@ -239,7 +239,7 @@ impl ApplicationHandler for Game {
                     for vkey in keys {
                         match vkey {
                             VirtualKey::Move(direction) => {
-                                let (dx, dy) = direction.to_delta();
+                                let (dx, dy) = runeforge_rl::input::screen_delta(direction);
                                 self.move_player(dx, dy);
                                 self.render_scene();
                                 self.update_pixels();
@@ -313,7 +313,7 @@ fn main() {
             eprintln!("✗ Failed to load tileset: {}", e);
             eprintln!();
             eprintln!("Tileset path: {}", tileset_path);
-            eprintln!("Make sure you're running from the `runeforge/` directory:");
+            eprintln!("Make sure you're running from the `runeforge-rl/` directory:");
             eprintln!("  cargo run --example windowed_tileset_roguelike");
             std::process::exit(1);
         }

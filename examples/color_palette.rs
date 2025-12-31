@@ -4,8 +4,7 @@
 //! by displaying gradient palettes and color mixing.
 
 use runeforge_color::Color;
-use runeforge_geometry::Point;
-use runeforge_terminal::Terminal;
+use runeforge_terminal::prelude::{IVec2, Terminal};
 use std::io;
 use std::thread;
 use std::time::Duration;
@@ -36,9 +35,9 @@ fn main() -> io::Result<()> {
 
     for (i, (name, color)) in colors.iter().enumerate() {
         let y = 4 + i as i32;
-        term.put_string(Point::new(4, y), name, *color, Color::BLACK);
+        term.put_string(IVec2::new(4, y), name, *color, Color::BLACK);
         for x in 0..20 {
-            term.put_char(Point::new(15 + x, y), '█', *color, Color::BLACK);
+            term.put_char(IVec2::new(15 + x, y), '█', *color, Color::BLACK);
         }
     }
 
@@ -50,11 +49,11 @@ fn main() -> io::Result<()> {
     draw_title(&mut term, "RGB Gradients");
 
     // Red gradient
-    term.put_string(Point::new(4, 4), "Red:", Color::WHITE, Color::BLACK);
+    term.put_string(IVec2::new(4, 4), "Red:", Color::WHITE, Color::BLACK);
     for x in 0..50 {
         let intensity = (x * 255 / 50) as u8;
         term.put_char(
-            Point::new(10 + x, 4),
+            IVec2::new(10 + x, 4),
             '█',
             Color::rgb(intensity, 0, 0),
             Color::BLACK,
@@ -62,11 +61,11 @@ fn main() -> io::Result<()> {
     }
 
     // Green gradient
-    term.put_string(Point::new(4, 6), "Green:", Color::WHITE, Color::BLACK);
+    term.put_string(IVec2::new(4, 6), "Green:", Color::WHITE, Color::BLACK);
     for x in 0..50 {
         let intensity = (x * 255 / 50) as u8;
         term.put_char(
-            Point::new(10 + x, 6),
+            IVec2::new(10 + x, 6),
             '█',
             Color::rgb(0, intensity, 0),
             Color::BLACK,
@@ -74,11 +73,11 @@ fn main() -> io::Result<()> {
     }
 
     // Blue gradient
-    term.put_string(Point::new(4, 8), "Blue:", Color::WHITE, Color::BLACK);
+    term.put_string(IVec2::new(4, 8), "Blue:", Color::WHITE, Color::BLACK);
     for x in 0..50 {
         let intensity = (x * 255 / 50) as u8;
         term.put_char(
-            Point::new(10 + x, 8),
+            IVec2::new(10 + x, 8),
             '█',
             Color::rgb(0, 0, intensity),
             Color::BLACK,
@@ -86,11 +85,11 @@ fn main() -> io::Result<()> {
     }
 
     // Gray gradient
-    term.put_string(Point::new(4, 10), "Gray:", Color::WHITE, Color::BLACK);
+    term.put_string(IVec2::new(4, 10), "Gray:", Color::WHITE, Color::BLACK);
     for x in 0..50 {
         let intensity = (x * 255 / 50) as u8;
         term.put_char(
-            Point::new(10 + x, 10),
+            IVec2::new(10 + x, 10),
             '█',
             Color::rgb(intensity, intensity, intensity),
             Color::BLACK,
@@ -121,12 +120,12 @@ fn main() -> io::Result<()> {
         };
 
         for y in 4..12 {
-            term.put_char(Point::new(2 + x, y), '█', Color::rgb(r, g, b), Color::BLACK);
+            term.put_char(IVec2::new(2 + x, y), '█', Color::rgb(r, g, b), Color::BLACK);
         }
     }
 
     term.put_string(
-        Point::new(4, 14),
+        IVec2::new(4, 14),
         "Full RGB support with 16 million colors!",
         Color::WHITE,
         Color::BLACK,
@@ -154,8 +153,8 @@ fn main() -> io::Result<()> {
 
     for (i, (name, color, ch)) in dungeon_colors.iter().enumerate() {
         let y = 4 + i as i32;
-        term.put_char(Point::new(4, y), *ch, *color, Color::BLACK);
-        term.put_string(Point::new(6, y), name, Color::WHITE, Color::BLACK);
+        term.put_char(IVec2::new(4, y), *ch, *color, Color::BLACK);
+        term.put_string(IVec2::new(6, y), name, Color::WHITE, Color::BLACK);
     }
 
     // Mini scene on the right
@@ -185,7 +184,7 @@ fn main() -> io::Result<()> {
                 _ => Color::WHITE,
             };
             term.put_char(
-                Point::new(35 + x as i32, 4 + y as i32),
+                IVec2::new(35 + x as i32, 4 + y as i32),
                 ch,
                 color,
                 Color::BLACK,
@@ -194,7 +193,7 @@ fn main() -> io::Result<()> {
     }
 
     term.put_string(
-        Point::new(4, 18),
+        IVec2::new(4, 18),
         "Press Enter to exit...",
         Color::rgb(100, 100, 100),
         Color::BLACK,
@@ -216,12 +215,12 @@ fn main() -> io::Result<()> {
 
 fn draw_title(term: &mut Terminal, title: &str) {
     let x = (term.width() as i32 - title.len() as i32) / 2;
-    term.put_string(Point::new(x, 1), title, Color::CYAN, Color::BLACK);
+    term.put_string(IVec2::new(x, 1), title, Color::CYAN, Color::BLACK);
 
     // Underline
     for i in 0..title.len() {
         term.put_char(
-            Point::new(x + i as i32, 2),
+            IVec2::new(x + i as i32, 2),
             '─',
             Color::rgb(80, 80, 80),
             Color::BLACK,

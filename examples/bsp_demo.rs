@@ -3,8 +3,8 @@
 //! This example demonstrates the Binary Space Partitioning (BSP) algorithm
 //! for generating dungeon layouts with rooms and connecting corridors.
 
-use runeforge_bsp::{BspConfig, DungeonGenerator};
-use runeforge_random::Rng;
+use runeforge_algorithms::prelude::{BspConfig, DungeonGenerator};
+use runeforge_random::prelude::Rng;
 use std::io::{self, Write};
 use std::thread;
 use std::time::Duration;
@@ -16,7 +16,7 @@ fn clear_screen() {
 }
 
 /// Render the dungeon to the terminal
-fn render_dungeon(dungeon: &runeforge_bsp::Dungeon, title: &str) {
+fn render_dungeon(dungeon: &runeforge_algorithms::prelude::Dungeon, title: &str) {
     clear_screen();
     println!("\x1B[1;36m{}\x1B[0m\n", title);
 

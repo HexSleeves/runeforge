@@ -8,7 +8,7 @@
 //!
 //! Run with: cargo run --example tileset_demo
 
-use runeforge_tileset::{cp437_to_char, Tileset};
+use runeforge_tileset::prelude::{cp437_to_char, Tileset};
 
 fn main() {
     println!("=== Runeforge Tileset Demo ===\n");

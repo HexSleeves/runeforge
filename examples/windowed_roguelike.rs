@@ -13,13 +13,13 @@
 //!
 //! Run with: cargo run --example windowed_roguelike
 
-use pixels::{Pixels, SurfaceTexture};
 use runeforge_color::Color;
-use runeforge_console::Console;
-use runeforge_geometry::Point;
+use runeforge_geometry::prelude::IVec2;
 use runeforge_input::{InputMap, VirtualKey};
-use runeforge_pixels::PixelsRenderer;
-use runeforge_tileset::TrueTypeFont;
+use runeforge_terminal::prelude::{Console, PixelsRenderer};
+use runeforge_tileset::prelude::TrueTypeFont;
+
+use pixels::{Pixels, SurfaceTexture};
 use winit::application::ApplicationHandler;
 use winit::event::{ElementState, KeyEvent, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
@@ -33,18 +33,18 @@ struct Game {
     window: Option<&'static Window>,
     pixels: Option<Pixels<'static>>,
     renderer: PixelsRenderer,
-    player_pos: Point,
+    player_pos: IVec2,
     input_map: InputMap,
 }
 
 impl Game {
-    fn new(font: &dyn runeforge_tileset::Font) -> Self {
+    fn new(font: &dyn runeforge_tileset::prelude::Font) -> Self {
         let renderer = PixelsRenderer::new(CONSOLE_WIDTH, CONSOLE_HEIGHT, font);
         Self {
             window: None,
             pixels: None,
             renderer,
-            player_pos: Point::new(40, 12),
+            player_pos: IVec2::new(40, 12),
             input_map: InputMap::roguelike_default(),
         }
     }
@@ -66,7 +66,7 @@ impl Game {
 
         // Draw title
         self.renderer.draw_string(
-            Point::new(30, 0),
+            IVec2::new(30, 0),
             " RUNEFORGE DEMO ",
             Color::YELLOW,
             Color::BLACK,
@@ -76,41 +76,41 @@ impl Game {
         for y in 2..23 {
             for x in 2..78 {
                 self.renderer
-                    .draw_char(Point::new(x, y), '.', Color::DARK_GRAY, Color::BLACK);
+                    .draw_char(IVec2::new(x, y), '.', Color::DARK_GRAY, Color::BLACK);
             }
         }
 
         // Draw walls
         for y in 5..18 {
             self.renderer
-                .draw_char(Point::new(20, y), '#', Color::WHITE, Color::BLACK);
+                .draw_char(IVec2::new(20, y), '#', Color::WHITE, Color::BLACK);
             self.renderer
-                .draw_char(Point::new(60, y), '#', Color::WHITE, Color::BLACK);
+                .draw_char(IVec2::new(60, y), '#', Color::WHITE, Color::BLACK);
         }
         for x in 20..=60 {
             self.renderer
-                .draw_char(Point::new(x, 5), '#', Color::WHITE, Color::BLACK);
+                .draw_char(IVec2::new(x, 5), '#', Color::WHITE, Color::BLACK);
             self.renderer
-                .draw_char(Point::new(x, 17), '#', Color::WHITE, Color::BLACK);
+                .draw_char(IVec2::new(x, 17), '#', Color::WHITE, Color::BLACK);
         }
 
         // Draw doors
         self.renderer
-            .draw_char(Point::new(40, 5), '+', Color::BROWN, Color::BLACK);
+            .draw_char(IVec2::new(40, 5), '+', Color::BROWN, Color::BLACK);
         self.renderer
-            .draw_char(Point::new(40, 17), '+', Color::BROWN, Color::BLACK);
+            .draw_char(IVec2::new(40, 17), '+', Color::BROWN, Color::BLACK);
 
         // Draw some monsters
         self.renderer
-            .draw_char(Point::new(30, 10), 'g', Color::GREEN, Color::BLACK);
+            .draw_char(IVec2::new(30, 10), 'g', Color::GREEN, Color::BLACK);
         self.renderer
-            .draw_char(Point::new(50, 12), 'o', Color::RED, Color::BLACK);
+            .draw_char(IVec2::new(50, 12), 'o', Color::RED, Color::BLACK);
 
         // Draw items
         self.renderer
-            .draw_char(Point::new(35, 8), '!', Color::MAGENTA, Color::BLACK);
+            .draw_char(IVec2::new(35, 8), '!', Color::MAGENTA, Color::BLACK);
         self.renderer.draw_char(
-            Point::new(45, 14),
+            IVec2::new(45, 14),
             '/',
             Color::rgb(139, 69, 19),
             Color::BLACK,
@@ -125,14 +125,14 @@ impl Game {
             .draw_hline(23, 1, 78, '─', Color::GRAY, Color::BLACK);
 
         self.renderer.draw_string(
-            Point::new(2, 24),
+            IVec2::new(2, 24),
             &format!("Position: ({}, {})", self.player_pos.x, self.player_pos.y),
             Color::GREEN,
             Color::BLACK,
         );
 
         self.renderer.draw_string(
-            Point::new(20, 24),
+            IVec2::new(20, 24),
             "Arrow/WASD/Vi-keys/Numpad to move",
             Color::YELLOW,
             Color::BLACK,
@@ -143,7 +143,7 @@ impl Game {
     }
 
     fn move_player(&mut self, dx: i32, dy: i32) {
-        let new_pos = Point::new(
+        let new_pos = IVec2::new(
             (self.player_pos.x + dx).clamp(2, 77),
             (self.player_pos.y + dy).clamp(2, 22),
         );
@@ -229,7 +229,7 @@ impl ApplicationHandler for Game {
                 for vkey in virtual_keys {
                     match vkey {
                         VirtualKey::Move(direction) => {
-                            let (dx, dy) = direction.to_delta();
+                            let (dx, dy) = runeforge_rl::input::screen_delta(direction);
                             self.move_player(dx, dy);
                             self.render_scene();
                             self.update_pixels();
@@ -285,7 +285,7 @@ fn main() {
     // Load font
     let font_path = concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/crates/runeforge-software/assets/font.ttf"
+        "/crates/runeforge-terminal/assets/font.ttf"
     );
 
     let font_data = match std::fs::read(font_path) {
@@ -293,7 +293,7 @@ fn main() {
         Err(_) => {
             eprintln!("Error: Could not find font file at '{}'", font_path);
             eprintln!();
-            eprintln!("Please ensure you have a font.ttf file in the runeforge-software/assets directory.");
+            eprintln!("Please ensure you have a font.ttf file in the runeforge-terminal/assets directory.");
             eprintln!("You can download a free monospace font like:");
             eprintln!("  - https://github.com/dejavu-fonts/dejavu-fonts/releases");
             eprintln!("  - https://github.com/microsoft/cascadia-code/releases");

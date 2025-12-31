@@ -5,7 +5,7 @@
 //!
 //! Run with: cargo run --example png_tileset_demo
 
-use runeforge_tileset::Tileset;
+use runeforge_tileset::prelude::Tileset;
 
 fn main() {
     println!("PNG Tileset Demo");
@@ -23,7 +23,7 @@ fn main() {
         }
         Err(e) => {
             eprintln!("✗ Failed to load tileset: {}", e);
-            eprintln!("\nMake sure you're running from the `runeforge/` directory:");
+            eprintln!("\nMake sure you're running from the `runeforge-rl/` directory:");
             eprintln!("  cargo run --example png_tileset_demo");
             std::process::exit(1);
         }

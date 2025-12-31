@@ -11,10 +11,9 @@
 //! Run with: cargo run --example roguelike_demo
 
 use runeforge_color::Color;
-use runeforge_console::Console;
-use runeforge_geometry::Point;
-use runeforge_software::SoftwareRenderer;
-use runeforge_tileset::TrueTypeFont;
+use runeforge_geometry::prelude::IVec2;
+use runeforge_terminal::prelude::{Console, SoftwareRenderer};
+use runeforge_tileset::prelude::TrueTypeFont;
 
 fn main() {
     println!("Roguelike Software Renderer Demo");
@@ -23,7 +22,7 @@ fn main() {
     // Try to load a font (you'll need to have one available)
     let font_path = concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/crates/runeforge-software/assets/font.ttf"
+        "/crates/runeforge-terminal/assets/font.ttf"
     );
 
     let font_data = match std::fs::read(font_path) {
@@ -51,33 +50,33 @@ fn main() {
     renderer.draw_box(0, 0, 40, 25, Color::GRAY, Color::BLACK, false);
 
     // Draw a title
-    renderer.draw_string(Point::new(14, 0), " DUNGEON ", Color::YELLOW, Color::BLACK);
+    renderer.draw_string(IVec2::new(14, 0), " DUNGEON ", Color::YELLOW, Color::BLACK);
 
     // Draw some floor tiles (.)
     for y in 2..23 {
         for x in 2..38 {
-            renderer.draw_char(Point::new(x, y), '.', Color::DARK_GRAY, Color::BLACK);
+            renderer.draw_char(IVec2::new(x, y), '.', Color::DARK_GRAY, Color::BLACK);
         }
     }
 
     // Draw some walls (#)
     // Vertical wall
     for y in 5..15 {
-        renderer.draw_char(Point::new(15, y), '#', Color::WHITE, Color::BLACK);
+        renderer.draw_char(IVec2::new(15, y), '#', Color::WHITE, Color::BLACK);
     }
     // Horizontal wall
     for x in 10..25 {
-        renderer.draw_char(Point::new(x, 10), '#', Color::WHITE, Color::BLACK);
+        renderer.draw_char(IVec2::new(x, 10), '#', Color::WHITE, Color::BLACK);
     }
 
     // Draw a door (+)
-    renderer.draw_char(Point::new(15, 10), '+', Color::BROWN, Color::BLACK);
+    renderer.draw_char(IVec2::new(15, 10), '+', Color::BROWN, Color::BLACK);
 
     // Draw some monsters
-    renderer.draw_char(Point::new(8, 7), 'g', Color::GREEN, Color::BLACK); // Goblin
-    renderer.draw_char(Point::new(25, 15), 'o', Color::RED, Color::BLACK); // Orc
+    renderer.draw_char(IVec2::new(8, 7), 'g', Color::GREEN, Color::BLACK); // Goblin
+    renderer.draw_char(IVec2::new(25, 15), 'o', Color::RED, Color::BLACK); // Orc
     renderer.draw_char(
-        Point::new(30, 18),
+        IVec2::new(30, 18),
         's',
         Color::rgb(100, 200, 100),
         Color::BLACK,
@@ -85,19 +84,19 @@ fn main() {
     // Snake
 
     // Draw some items
-    renderer.draw_char(Point::new(12, 8), '!', Color::MAGENTA, Color::BLACK); // Potion
-    renderer.draw_char(Point::new(20, 12), '/', Color::BROWN, Color::BLACK); // Staff
-    renderer.draw_char(Point::new(5, 20), '$', Color::YELLOW, Color::BLACK); // Gold
+    renderer.draw_char(IVec2::new(12, 8), '!', Color::MAGENTA, Color::BLACK); // Potion
+    renderer.draw_char(IVec2::new(20, 12), '/', Color::BROWN, Color::BLACK); // Staff
+    renderer.draw_char(IVec2::new(5, 20), '$', Color::YELLOW, Color::BLACK); // Gold
 
     // Draw the player (@)
-    renderer.draw_char(Point::new(20, 20), '@', Color::CYAN, Color::BLACK);
+    renderer.draw_char(IVec2::new(20, 20), '@', Color::CYAN, Color::BLACK);
 
     // Draw a status bar
     renderer.draw_hline(23, 1, 38, '─', Color::GRAY, Color::BLACK);
 
-    renderer.draw_string(Point::new(2, 24), "HP:100/100", Color::GREEN, Color::BLACK);
-    renderer.draw_string(Point::new(15, 24), "Lvl:1", Color::YELLOW, Color::BLACK);
-    renderer.draw_string(Point::new(24, 24), "Gold:50", Color::YELLOW, Color::BLACK);
+    renderer.draw_string(IVec2::new(2, 24), "HP:100/100", Color::GREEN, Color::BLACK);
+    renderer.draw_string(IVec2::new(15, 24), "Lvl:1", Color::YELLOW, Color::BLACK);
+    renderer.draw_string(IVec2::new(24, 24), "Gold:50", Color::YELLOW, Color::BLACK);
 
     // Render and save to PNG
     renderer

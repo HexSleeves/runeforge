@@ -9,7 +9,7 @@
 //! Run with: cargo run --example font_atlas_demo
 
 use runeforge_color::Color;
-use runeforge_tileset::{Font, GlyphAtlas};
+use runeforge_tileset::prelude::{Font, GlyphAtlas};
 
 /// Minimal BDF font for demonstration (no external file needed)
 const DEMO_BDF: &[u8] = b"STARTFONT 2.1
@@ -268,8 +268,8 @@ fn main() {
     println!("=== Runeforge Font Atlas Demo ===\n");
 
     // Load the embedded BDF font
-    let font =
-        runeforge_tileset::BitmapFont::from_bytes(DEMO_BDF).expect("Failed to load demo font");
+    let font = runeforge_tileset::prelude::BitmapFont::from_bytes(DEMO_BDF)
+        .expect("Failed to load demo font");
 
     println!("Font loaded:");
     println!("  - Name: {}", font.name());

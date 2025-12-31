@@ -13,11 +13,6 @@
 use anyhow::Result;
 use image::GenericImageView;
 use pixels::{Pixels, SurfaceTexture};
-use runeforge_algorithms::{BspConfig, DungeonGenerator};
-use runeforge_fov::compute_fov;
-use runeforge_geometry::Point;
-use runeforge_input::{InputEvent, InputMap, InputState, VirtualKey};
-use runeforge_random::Rng;
 use std::collections::HashSet;
 use winit::{
     application::ApplicationHandler,
@@ -26,6 +21,8 @@ use winit::{
     keyboard::{KeyCode, PhysicalKey},
     window::Window,
 };
+
+use runeforge_rl::prelude::*;
 
 const MAP_WIDTH: u32 = 80;
 const MAP_HEIGHT: u32 = 40;
@@ -89,17 +86,30 @@ struct Game {
     /// The dungeon map
     map: Vec<Vec<Tile>>,
     /// Player's current position
-    player_pos: Point,
+    player_pos: IVec2,
     /// Tiles currently visible to the player
-    visible_tiles: HashSet<Point>,
+    visible_tiles: HashSet<IVec2>,
     /// Tiles that have been explored (seen before)
-    explored_tiles: HashSet<Point>,
+    explored_tiles: HashSet<IVec2>,
     /// Map dimensions
     width: u32,
     height: u32,
     /// Random number generator
     #[allow(dead_code)]
     rng: Rng,
+}
+
+impl FovProvider<()> for Game {
+    fn is_opaque(&mut self, position: IVec2, _data: &mut ()) -> bool {
+        if position.x < 0
+            || position.y < 0
+            || position.x >= self.width as i32
+            || position.y >= self.height as i32
+        {
+            return true; // Out of bounds is opaque
+        }
+        self.map[position.y as usize][position.x as usize] == Tile::Wall
+    }
 }
 
 impl Game {
@@ -127,9 +137,9 @@ impl Game {
 
         // Place player in the first room's center
         let first_room = &dungeon.rooms()[0];
-        let player_pos = Point::new(
-            first_room.x + (first_room.width / 2) as i32,
-            first_room.y + (first_room.height / 2) as i32,
+        let player_pos = IVec2::new(
+            first_room.min.x + (first_room.width() / 2),
+            first_room.min.y + (first_room.height() / 2),
         );
 
         let mut game = Game {
@@ -149,12 +159,12 @@ impl Game {
     }
 
     /// Check if a position is within map bounds
-    fn in_bounds(&self, pos: Point) -> bool {
+    fn in_bounds(&self, pos: IVec2) -> bool {
         pos.x >= 0 && pos.x < self.width as i32 && pos.y >= 0 && pos.y < self.height as i32
     }
 
     /// Check if a tile is walkable
-    fn is_walkable(&self, pos: Point) -> bool {
+    fn is_walkable(&self, pos: IVec2) -> bool {
         if !self.in_bounds(pos) {
             return false;
         }
@@ -163,7 +173,7 @@ impl Game {
 
     /// Move the player by a delta
     fn move_player(&mut self, dx: i32, dy: i32) {
-        let new_pos = Point::new(self.player_pos.x + dx, self.player_pos.y + dy);
+        let new_pos = IVec2::new(self.player_pos.x + dx, self.player_pos.y + dy);
 
         if self.is_walkable(new_pos) {
             self.player_pos = new_pos;
@@ -175,27 +185,16 @@ impl Game {
     fn update_fov(&mut self) {
         self.visible_tiles.clear();
 
-        // Create a local copy of the map for the is_blocking closure
-        let map = self.map.clone();
-        let width = self.width;
-        let height = self.height;
+        // Compute FOV using the current API
+        let visible_points = Fov::Shadowcast.compute(self.player_pos, FOV_RADIUS as u32, self, ());
 
-        let is_blocking_fn = |pos: Point| -> bool {
-            if pos.x < 0 || pos.y < 0 || pos.x >= width as i32 || pos.y >= height as i32 {
-                return true;
+        // Update visible and explored tiles
+        for pos in visible_points {
+            if pos.x >= 0 && pos.y >= 0 && pos.x < self.width as i32 && pos.y < self.height as i32 {
+                self.visible_tiles.insert(pos);
+                self.explored_tiles.insert(pos);
             }
-            map[pos.y as usize][pos.x as usize] == Tile::Wall
-        };
-
-        let visible_tiles = &mut self.visible_tiles;
-        let explored_tiles = &mut self.explored_tiles;
-
-        compute_fov(self.player_pos, FOV_RADIUS, &is_blocking_fn, &mut |pos| {
-            if pos.x >= 0 && pos.y >= 0 && pos.x < width as i32 && pos.y < height as i32 {
-                visible_tiles.insert(pos);
-                explored_tiles.insert(pos);
-            }
-        });
+        }
     }
 
     /// Handle a virtual key press
@@ -203,7 +202,7 @@ impl Game {
         match vkey {
             VirtualKey::Quit => return false,
             VirtualKey::Move(dir) => {
-                let (dx, dy) = dir.to_delta();
+                let (dx, dy) = runeforge_rl::input::screen_delta(dir);
                 self.move_player(dx, dy);
             }
             _ => {}
@@ -219,7 +218,7 @@ impl Game {
         // Render each tile
         for y in 0..self.height {
             for x in 0..self.width {
-                let pos = Point::new(x as i32, y as i32);
+                let pos = IVec2::new(x as i32, y as i32);
 
                 // Determine character and tint based on visibility
                 let (char_code, tint) = if pos == self.player_pos {

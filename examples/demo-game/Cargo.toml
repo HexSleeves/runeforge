@@ -1,29 +1,24 @@
 [package]
-name = "demo-game"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-repository.workspace = true
-homepage.workspace = true
+name                    = "demo-game"
+version.workspace       = true
+edition.workspace       = true
+rust-version.workspace  = true
+license.workspace       = true
+repository.workspace    = true
+homepage.workspace      = true
 documentation.workspace = true
-readme.workspace = true
-keywords.workspace = true
-categories.workspace = true
+readme.workspace        = true
+keywords.workspace      = true
+categories.workspace    = true
+description             = "Demo game showcasing Runeforge capabilities"
 
 [dependencies]
-# Runeforge crates
-runeforge-algorithms = { workspace = true }
-runeforge-color = { workspace = true }
-runeforge-fov = { workspace = true }
-runeforge-geometry = { workspace = true }
-runeforge-input = { workspace = true }
-runeforge-random = { workspace = true }
+runeforge-rl = { path = "../../", features = ["full"] }
 
 # Window and rendering
-winit = "0.30"
+winit  = "0.30"
 pixels = "0.15"
-image = { workspace = true }
+image  = { workspace = true }
 
 # Error handling
 anyhow = "1.0"
