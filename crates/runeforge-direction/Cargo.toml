@@ -1,0 +1,25 @@
+[package]
+name                    = "runeforge-direction"
+version.workspace       = true
+edition.workspace       = true
+rust-version.workspace  = true
+license.workspace       = true
+repository.workspace    = true
+homepage.workspace      = true
+documentation.workspace = true
+readme.workspace        = true
+keywords.workspace      = true
+categories.workspace    = true
+description             = "Direction utilities for the Runeforge roguelike library"
+
+[dependencies]
+glam = { workspace = true }
+serde = { workspace = true, optional = true }
+derive_more = { version = "2", default-features = false, features = [
+  "deref",
+  "deref_mut",
+] }
+
+[features]
+default   = []
+serialize = ["serde"]

@@ -12,7 +12,10 @@ readme.workspace        = true
 description             = "2D geometric primitives and utilities for the Runeforge roguelike library"
 
 [dependencies]
-serde = { workspace = true, optional = true }
+runeforge-direction = { workspace = true }
+hashbrown           = { workspace = true }
+glam                = { workspace = true }
+serde               = { workspace = true, optional = true }
 
 [features]
 default       = []
