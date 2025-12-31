@@ -1,5 +1,5 @@
 [package]
-name                    = "runeforge"
+name                    = "runeforge-rl"
 version.workspace       = true
 edition.workspace       = true
 rust-version.workspace  = true
@@ -17,21 +17,17 @@ path = "src/lib.rs"
 [workspace]
 resolver = "2"
 members = [
-  "crates/runeforge-core",
+  "crates/runeforge-algorithms",
   "crates/runeforge-color",
-  "crates/runeforge-geometry",
-  "crates/runeforge-noise",
-  "crates/runeforge-random",
-  "crates/runeforge-pathfinding",
+  "crates/runeforge-direction",
   "crates/runeforge-fov",
-  "crates/runeforge-bsp",
-  "crates/runeforge-console",
+  "crates/runeforge-geometry",
+  "crates/runeforge-input",
+  "crates/runeforge-noise",
+  "crates/runeforge-pathfinding",
+  "crates/runeforge-random",
   "crates/runeforge-terminal",
   "crates/runeforge-tileset",
-  "crates/runeforge-software",
-  "crates/runeforge-pixels",
-  "crates/runeforge-input",
-  "crates/runeforge-algorithms",
   "examples/demo-game",
 ]
 
@@ -40,30 +36,26 @@ version       = "0.1.0"
 edition       = "2021"
 rust-version  = "1.85"
 license       = "BSD-3-Clause"
-repository    = "https://github.com/yourusername/runeforge"
-homepage      = "https://runeforge.rs"
-documentation = "https://docs.rs/runeforge"
+repository    = "https://github.com/yourusername/runeforge-rl"
+homepage      = "https://runeforge-rl.rs"
+documentation = "https://docs.rs/runeforge-rl"
 readme        = "README.md"
 keywords      = ["roguelike", "gamedev", "terminal", "ascii"]
 categories    = ["game-development", "graphics", "algorithms"]
 
 [workspace.dependencies]
 # Internal crates
-runeforge-core        = { path = "crates/runeforge-core", version = "0.1.0" }
+runeforge-algorithms  = { path = "crates/runeforge-algorithms", version = "0.1.0" }
 runeforge-color       = { path = "crates/runeforge-color", version = "0.1.0" }
-runeforge-geometry    = { path = "crates/runeforge-geometry", version = "0.1.0" }
-runeforge-noise       = { path = "crates/runeforge-noise", version = "0.1.0" }
-runeforge-random      = { path = "crates/runeforge-random", version = "0.1.0" }
-runeforge-pathfinding = { path = "crates/runeforge-pathfinding", version = "0.1.0" }
+runeforge-direction   = { path = "crates/runeforge-direction", version = "0.1.0" }
 runeforge-fov         = { path = "crates/runeforge-fov", version = "0.1.0" }
-runeforge-bsp         = { path = "crates/runeforge-bsp", version = "0.1.0" }
-runeforge-console     = { path = "crates/runeforge-console", version = "0.1.0" }
+runeforge-geometry    = { path = "crates/runeforge-geometry", version = "0.1.0" }
+runeforge-input       = { path = "crates/runeforge-input", version = "0.1.0" }
+runeforge-noise       = { path = "crates/runeforge-noise", version = "0.1.0" }
+runeforge-pathfinding = { path = "crates/runeforge-pathfinding", version = "0.1.0" }
+runeforge-random      = { path = "crates/runeforge-random", version = "0.1.0" }
 runeforge-terminal    = { path = "crates/runeforge-terminal", version = "0.1.0" }
 runeforge-tileset     = { path = "crates/runeforge-tileset", version = "0.1.0" }
-runeforge-software    = { path = "crates/runeforge-software", version = "0.1.0" }
-runeforge-pixels      = { path = "crates/runeforge-pixels", version = "0.1.0" }
-runeforge-input       = { path = "crates/runeforge-input", version = "0.1.0" }
-runeforge-algorithms  = { path = "crates/runeforge-algorithms", version = "0.1.0" }
 
 # Window & Events
 winit = { version = "0.30", features = ["rwh_06"] }
@@ -74,9 +66,8 @@ pixels   = "0.15.0"
 bytemuck = "1.24.0"
 
 # Text rendering
-ab_glyph    = "0.2"
-cosmic-text = "0.15"
-bdf-parser  = { git = "https://github.com/embedded-graphics/bdf.git", package = "bdf-parser" }
+ab_glyph   = "0.2"
+bdf-parser = { git = "https://github.com/embedded-graphics/bdf.git", package = "bdf-parser" }
 
 # Images
 image = { version = "0.25", default-features = false, features = ["png"] }
@@ -86,16 +77,14 @@ pathfinding  = "4.14"
 noise        = "0.9"
 bresenham    = "0.1"
 line_drawing = "1.0"
+glam         = { version = "0.30", features = ["serde"] }
 
 # Utilities
-rand        = "0.9"
-palette     = "0.7"
-flate2      = "1.1"
-num-integer = "0.1"
+rand      = "0.9"
+palette   = "0.7"
+flate2    = "1.1"
+hashbrown = "0.16"
 
-# Performance optimizations
-rustc-hash = "2.0"  # Faster HashMap for integer keys
-smallvec   = "1.13" # Stack-allocated small vectors
 
 # Serialization (optional)
 serde = { version = "1.0", features = ["derive"] }
@@ -111,20 +100,48 @@ log = "0.4"
 criterion = "0.8"
 
 [dependencies]
-runeforge-core = { workspace = true }
+runeforge-color       = { workspace = true }
+runeforge-geometry    = { workspace = true }
+runeforge-random      = { workspace = true }
+runeforge-algorithms  = { workspace = true, optional = true }
+runeforge-direction   = { workspace = true, optional = true }
+runeforge-fov         = { workspace = true, optional = true }
+runeforge-input       = { workspace = true, optional = true }
+runeforge-noise       = { workspace = true, optional = true }
+runeforge-pathfinding = { workspace = true, optional = true }
+runeforge-terminal    = { workspace = true, optional = true }
+runeforge-tileset     = { workspace = true, optional = true }
+
+[features]
+default = ["terminal", "fov", "pathfinding"]
+algorithms = ["runeforge-algorithms"]
+direction = ["runeforge-direction"]
+fov = ["runeforge-fov"]
+input = ["runeforge-input"]
+noise = ["runeforge-noise"]
+pathfinding = ["runeforge-pathfinding"]
+terminal = ["runeforge-terminal"]
+tileset = ["runeforge-tileset"]
+full = [
+  "algorithms",
+  "direction",
+  "fov",
+  "input",
+  "noise",
+  "pathfinding",
+  "terminal",
+  "tileset",
+]
 
 [dev-dependencies]
+runeforge-direction   = { workspace = true }
 runeforge-algorithms  = { workspace = true }
-runeforge-bsp         = { workspace = true }
 runeforge-color       = { workspace = true }
-runeforge-console     = { workspace = true }
 runeforge-fov         = { workspace = true }
 runeforge-geometry    = { workspace = true }
 runeforge-input       = { workspace = true }
 runeforge-pathfinding = { workspace = true }
-runeforge-pixels      = { workspace = true }
 runeforge-random      = { workspace = true }
-runeforge-software    = { workspace = true }
 runeforge-terminal    = { workspace = true }
 runeforge-tileset     = { workspace = true }
 

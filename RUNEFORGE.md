@@ -137,88 +137,68 @@
 Following the **modular monorepo** approach inspired by [bracket-lib](https://github.com/amethyst/bracket-lib):
 
 ```bash
-runeforge/
+runeforge-rl/
 ├── Cargo.toml                 # Workspace configuration
 ├── RUNEFORGE.md              # This document
 ├── README.md                 # User-facing documentation
 ├── LICENSE                   # BSD-3-Clause (like libtcod)
 ├── crates/
-│   ├── runeforge-core/       # Re-exports all crates (facade)
+│   ├── runeforge-algorithms/ # BSP, Caves, Drunkard's Walk
 │   ├── runeforge-color/      # Color manipulation
-│   ├── runeforge-geometry/   # 2D/3D geometric primitives
-│   ├── runeforge-noise/      # Noise generation
-│   ├── runeforge-random/     # Random number generation
-│   ├── runeforge-pathfinding/# Pathfinding algorithms
+│   ├── runeforge-direction/  # Grid direction handling
 │   ├── runeforge-fov/        # Field-of-view algorithms
-│   ├── runeforge-bsp/        # BSP dungeon generation
+│   ├── runeforge-geometry/   # 2D geometric primitives
+│   ├── runeforge-input/      # Input handling
+│   ├── runeforge-noise/      # Noise generation
+│   ├── runeforge-pathfinding/# Pathfinding algorithms
+│   ├── runeforge-random/     # Random number generation
 │   ├── runeforge-terminal/   # Terminal/console rendering
 │   ├── runeforge-tileset/    # Tileset/font loading
-│   ├── runeforge-input/      # Input handling (keyboard/mouse)
-│   └── runeforge-algorithms/ # Bresenham, heightmaps, etc.
 ├── examples/                 # Example roguelikes
-│   ├── hello_world/
-│   ├── fov_demo/
-│   ├── pathfinding_demo/
-│   └── complete_roguelike/
-├── docs/                     # mdBook documentation
-└── benches/                  # Performance benchmarks
+│   ├── ...
+└── src/                      # Facade crate
 ```
 
 ### Crate Dependency Graph
 
-```bash
-runeforge-core (facade)
-├── runeforge-color
-├── runeforge-geometry
-├── runeforge-random
-│   └── rand
-├── runeforge-noise
-│   └── noise-rs
-├── runeforge-pathfinding
-│   ├── runeforge-geometry
-│   └── pathfinding
-├── runeforge-fov
-│   └── runeforge-geometry
-├── runeforge-bsp
+```text
+.
+├── runeforge-algorithms
 │   ├── runeforge-geometry
 │   └── runeforge-random
-├── runeforge-algorithms
+├── runeforge-color
+├── runeforge-direction
+├── runeforge-fov
 │   └── runeforge-geometry
-├── runeforge-tileset
-│   ├── ab_glyph
-│   └── image
+├── runeforge-geometry
+│   └── runeforge-direction
+├── runeforge-input
+│   └── runeforge-direction
+├── runeforge-noise
+├── runeforge-pathfinding
+│   └── runeforge-geometry
+├── runeforge-random
 ├── runeforge-terminal
 │   ├── runeforge-color
 │   ├── runeforge-geometry
-│   ├── runeforge-tileset
-│   ├── winit
-│   ├── wgpu
-│   └── pixels
-└── runeforge-input
-    └── winit
+│   └── runeforge-tileset
+├── runeforge-tileset
+│   └── runeforge-color
 ```
 
 ### Crate Descriptions
 
-#### runeforge-core
-
-**Purpose:** Facade crate that re-exports all sub-crates with feature flags.
-
-**Features:**
-
-- Unified API similar to libtcod
-- Feature flags to enable/disable components
-- Prelude for common imports
-
-**Example:**
-
 ```rust
-use runeforge::prelude::*;
+use runeforge_rl::prelude::*;
 
 fn main() {
-    let mut console = Console::new(80, 50);
-    console.set_char(10, 10, '@', Color::WHITE, Color::BLACK);
-    console.flush();
+    let mut rng = Rng::new();
+    let point = IVec2::new(10, 20);
+    let color = Color::RED;
+
+    println!("Random d6 roll: {}", rng.roll_dice(1, 6));
+    println!("IVec2 at ({}, {})", point.x, point.y);
+    println!("Color: {}", color);
 }
 ```
 
@@ -241,7 +221,7 @@ fn main() {
 
 **Features:**
 
-- `Point`, `Rect`, `Circle` types
+- `IVec2`, `Rect`, `Circle` types
 - Distance calculations (Manhattan, Euclidean, Chebyshev)
 - Grid utilities and iterators
 - Bounds checking
@@ -392,7 +372,7 @@ fn main() {
   - [ ] Unit tests
 
 - [ ] **runeforge-geometry**
-  - [ ] `Point` struct (x, y)
+  - [ ] `IVec2` struct (x, y)
   - [ ] `Rect` struct (x, y, w, h)
   - [ ] `Circle` struct (center, radius)
   - [ ] Distance functions (Manhattan, Euclidean, Chebyshev)
@@ -1013,8 +993,8 @@ This makes migration from libtcod easier than bracket-lib, while providing moder
 #### Clone and Build
 
 ```bash
-git clone https://github.com/yourusername/runeforge.git
-cd runeforge
+git clone https://github.com/yourusername/runeforge-rl.git
+cd runeforge-rl
 cargo build
 ```
 
@@ -1047,20 +1027,20 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-runeforge = "1.0"
+runeforge-rl = "1.0"
 ```
 
 Or with specific features:
 
 ```toml
 [dependencies]
-runeforge = { version = "1.0", features = ["render-wgpu", "pathfinding", "fov"] }
+runeforge-rl = { version = "1.0", features = ["render-wgpu", "pathfinding", "fov"] }
 ```
 
 #### Quick Start
 
 ```rust
-use runeforge::prelude::*;
+use runeforge_rl::prelude::*;
 
 fn main() -> Result<(), RuneforgeError> {
     let mut console = Console::new(80, 50);
@@ -1085,9 +1065,9 @@ fn main() -> Result<(), RuneforgeError> {
 
 ### Official Documentation
 
-- **API Docs:** <https://docs.rs/runeforge>
+- **API Docs:** <https://docs.rs/runeforge-rl>
 - **Tutorial:** <https://runeforge.rs/tutorial>
-- **Examples:** <https://github.com/yourusername/runeforge/tree/main/examples>
+- **Examples:** <https://github.com/yourusername/runeforge-rl/tree/main/examples>
 
 ### Rust Graphics Ecosystem
 

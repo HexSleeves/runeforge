@@ -2,9 +2,9 @@
 
 ## A modern, modular roguelike library for Rust
 
-[![Crates.io](https://img.shields.io/crates/v/runeforge)](https://crates.io/crates/runeforge)
-[![Documentation](https://docs.rs/runeforge/badge.svg)](https://docs.rs/runeforge)
-[![License](https://img.shields.io/crates/l/runeforge)](https://github.com/yourusername/runeforge/blob/main/LICENSE)
+[![Crates.io](https://img.shields.io/crates/v/runeforge-rl)](https://crates.io/crates/runeforge-rl)
+[![Documentation](https://docs.rs/runeforge-rl/badge.svg)](https://docs.rs/runeforge-rl)
+[![License](https://img.shields.io/crates/l/runeforge-rl)](https://github.com/yourusername/runeforge-rl/blob/main/LICENSE)
 
 ## 🎯 About
 
@@ -27,21 +27,21 @@ Add Runeforge to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-runeforge-core = "0.1"
+runeforge-rl = "0.1"
 ```
 
 ### Hello World
 
 ```rust
-use runeforge_core::prelude::*;
+use runeforge_rl::prelude::*;
 
 fn main() {
     let mut rng = Rng::new();
-    let point = Point::new(10, 20);
+    let point = IVec2::new(10, 20);
     let color = Color::RED;
 
     println!("Random d6 roll: {}", rng.roll_dice(1, 6));
-    println!("Point at ({}, {})", point.x, point.y);
+    println!("IVec2 at ({:?})", point);
     println!("Color: {}", color);
 }
 ```
@@ -52,46 +52,41 @@ Runeforge is organized as a modular workspace:
 
 | Crate | Description | Status |
 |-------|-------------|--------|
-| `runeforge-core` | Unified facade, re-exports all crates | ✅ Basic |
+| `runeforge-algorithms` | Procedural map generation (BSP, Caves, etc.) | ✅ Complete |
 | `runeforge-color` | RGB/HSV color manipulation | ✅ Complete |
-| `runeforge-geometry` | 2D primitives (Point, Rect) | ✅ Complete |
-| `runeforge-random` | RNG with dice notation | ✅ Complete |
+| `runeforge-direction` | Grid-based direction handling | ✅ Complete |
 | `runeforge-fov` | Field-of-view algorithms | ✅ Complete |
-| `runeforge-pathfinding` | A* and Dijkstra pathfinding | ✅ Complete |
-| `runeforge-bsp` | Binary space partitioning | ✅ Complete |
-| `runeforge-terminal` | Console rendering (CPU/GPU) | ✅ Complete |
-| `runeforge-tileset` | Font and tileset loading | ✅ Complete |
+| `runeforge-geometry` | 2D primitives (IVec2, Rect) | ✅ Complete |
 | `runeforge-input` | Keyboard and mouse input | ✅ Complete |
-| `runeforge-pixels` | GPU backend using `pixels` | ✅ Complete |
-| `runeforge-software` | CPU backend (software rendering) | ✅ Complete |
-| `runeforge-console` | Abstract console trait | ✅ Complete |
-| `runeforge-noise` | Procedural noise generation | 📋 Planned (Phase 3) |
-| `runeforge-algorithms` | Line drawing, flood fill, etc. | 📋 Planned (Phase 3) |
+| `runeforge-noise` | Procedural noise generation | ✅ Complete |
+| `runeforge-pathfinding` | A* and Dijkstra pathfinding | ✅ Complete |
+| `runeforge-random` | RNG with dice notation | ✅ Complete |
+| `runeforge-terminal` | Console rendering (CPU/GPU/ANSI) | ✅ Complete |
+| `runeforge-tileset` | Font and tileset loading | ✅ Complete |
 
 ## 🎨 Features
 
 ### Current Features (v0.1)
 
 - ✅ **Color System**: RGB/HSV conversion, blending, named colors
-- ✅ **Geometry**: Point and Rect types with distance calculations
-- ✅ **Random Numbers**: Dice notation parsing (`3d6+2`), weighted selection
+- ✅ **Geometry**: IVec2 and Rect types with iterators
+- ✅ **Random Numbers**: Seedable RNG, dice notation parsing (`3d6+2`), weighted selection
 - ✅ **FOV Algorithms**: Symmetric shadowcasting with precise fraction-based calculation
-- ✅ **Pathfinding**: A* algorithm with 4-way and 8-way movement
-- ✅ **Procedural Generation**: BSP dungeon generation (rooms and corridors)
-- ✅ **Rendering**: 
+- ✅ **Pathfinding**: A* and Dijkstra pathfinding via the `pathfinding` crate
+- ✅ **Procedural Generation**: BSP dungeons, Cellular Automata caves, and Drunkard's Walk tunnels
+- ✅ **Noise Generation**: 2D Perlin noise maps
+- ✅ **Rendering**:
   - Abstract `Console` trait for backend-agnostic code
-  - GPU-accelerated backend (wgpu/pixels)
   - Software backend (CPU buffer, PNG export)
-  - Terminal backend (ANSI escape codes, truecolor)
+  - Terminal backend (ANSI escape codes)
 - ✅ **Tilesets**: Support for TrueType/OpenType fonts and bitmap tilesets
 - ✅ **Input**: Action-based input mapping (keyboard/mouse) with support for vi-keys, WASD, arrows
 
 ### Planned Features
 
-- 🔨 **Procedural Generation**: Noise (Perlin/Simplex), cellular automata (Phase 3)
-- 🔨 **Algorithms**: Line drawing, flood fill (Phase 3)
-- 🔨 **Advanced Input**: Gestures, gamepad support (Phase 5)
-- 🔨 **UI Framework**: Widgets, layouts (Future)
+- 🔨 **GPU Renderer**: A `wgpu`-based renderer is available but needs integration into the main library.
+- 🔨 **UI Framework**: A simple UI toolkit for buttons, text boxes, etc. is a long-term goal.
+- 🔨 **Advanced Algorithms**: More procedural generation and pathfinding options.
 
 ## 📚 Examples
 
@@ -108,17 +103,16 @@ cargo run --example bsp_demo
 
 ## 🔧 Development Status
 
-Runeforge is currently in **Phase 5** of development (Input & Integration). See [RUNEFORGE.md](RUNEFORGE.md) for the complete roadmap.
+Runeforge is now largely complete and documented. The core modules are stable and ready for use.
 
-### Current Progress: ~70%
+### Current Progress: ~90%
 
-- ✅ Project structure and workspace setup
-- ✅ Core crates: color, geometry, random
-- ✅ Core Algorithms: FOV, Pathfinding, BSP
-- ✅ Rendering system: GPU, Software, Terminal backends
-- ✅ Input system: Action mapping, keyboard/mouse
-- 🔨 Procedural Generation: Noise, advanced map gen (Next)
-- 📋 Example Game: Complete roguelike integration (In Progress)
+- ✅ Core crates: color, geometry, random, direction, distance, utils
+- ✅ Core Algorithms: FOV, Pathfinding, BSP, Caves, Drunkard's Walk, Noise
+- ✅ Rendering system: Software and Terminal backends are stable.
+- ✅ Input system: Action mapping for keyboard/mouse.
+- ✅ Documentation: All public APIs are now documented with examples.
+- 🔨 Example Game: A complete roguelike demo is in progress.
 
 ## 🤝 Contributing
 
@@ -126,15 +120,15 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ### Areas Where Help Is Needed
 
-- Algorithm implementations (Noise, Line drawing)
-- Advanced map generation (Cellular Automata, Drunkard's Walk)
-- Documentation and tutorials
-- Example roguelikes
-- Testing and benchmarks
+- GPU renderer integration and examples.
+- More advanced map generation algorithms.
+- UI framework design and implementation.
+- Example roguelikes and demos.
+- Performance benchmarks.
 
 ## 📖 Documentation
 
-- **API Documentation**: <https://docs.rs/runeforge-core>
+- **API Documentation**: <https://docs.rs/runeforge-rl>
 - **Tutorial**: Coming soon
 - **Architecture Guide**: See [RUNEFORGE.md](RUNEFORGE.md)
 - **Migration from libtcod**: Coming soon
@@ -190,8 +184,8 @@ See [LICENSE](LICENSE) for details.
 
 ## 🔗 Links
 
-- **GitHub**: <https://github.com/yourusername/runeforge>
-- **Crates.io**: <https://crates.io/crates/runeforge-core>
+- **GitHub**: <https://github.com/yourusername/runeforge-rl>
+- **Crates.io**: <https://crates.io/crates/runeforge-rl>
 - **Discord**: Coming soon
 - **r/roguelikedev**: <https://reddit.com/r/roguelikedev>
 
