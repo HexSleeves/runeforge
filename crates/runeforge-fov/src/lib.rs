@@ -64,10 +64,10 @@ impl Fraction {
         self.numerator * other.denominator >= other.numerator * self.denominator
     }
 
-    /// Returns true if self < other.
+    /// Returns true if self <= other.
     #[inline]
-    fn less_than(self, other: Self) -> bool {
-        self.numerator * other.denominator < other.numerator * self.denominator
+    fn less_equal(self, other: Self) -> bool {
+        self.numerator * other.denominator <= other.numerator * self.denominator
     }
 }
 
@@ -134,19 +134,20 @@ impl Row {
     /// Round ties up: floor(fraction * depth + 0.5)
     #[inline]
     fn round_ties_up_frac(frac: Fraction, depth: i32) -> i32 {
-        // floor((num * depth) / den + 0.5) = floor((num * depth + den/2) / den)
-        let num = frac.numerator * depth;
-        let den = frac.denominator;
-        (num * 2 + den) / (den * 2)
+        // Integer division rounds toward zero, so handle negatives explicitly.
+        let num = frac.numerator * depth * 2 + frac.denominator;
+        let den = frac.denominator * 2;
+        num_integer::Integer::div_floor(&num, &den)
     }
 
     /// Round ties down: ceil(fraction * depth - 0.5)
     #[inline]
     fn round_ties_down_frac(frac: Fraction, depth: i32) -> i32 {
-        // ceil((num * depth) / den - 0.5) = ceil((num * depth - den/2) / den)
-        let num = frac.numerator * depth;
-        let den = frac.denominator;
-        (num * 2 - den + (den * 2 - 1)) / (den * 2)
+        // Integer division rounds toward zero, so handle negatives explicitly.
+        let num = frac.numerator * depth * 2 - frac.denominator;
+        let den = frac.denominator * 2;
+        // Self::div_ceil(num, den)
+        num_integer::Integer::div_ceil(&num, &den)
     }
 
     /// Returns the slope from the origin through the left edge of the tile.
@@ -159,23 +160,14 @@ impl Row {
     #[inline]
     fn is_symmetric(&self, col: i32) -> bool {
         let slope = Fraction::new(col, self.depth);
-        slope.greater_equal(self.start_slope) && slope.less_than(self.end_slope)
+        slope.greater_equal(self.start_slope) && slope.less_equal(self.end_slope)
     }
 
     /// Returns true if the wall tile is visible.
     #[inline]
     fn is_wall_visible(&self, col: i32) -> bool {
         let slope = Self::slope(col, self.depth);
-        let adj_start = Fraction::new(
-            self.start_slope.numerator * self.depth,
-            self.start_slope.denominator,
-        );
-        let adj_end = Fraction::new(
-            self.end_slope.numerator * self.depth,
-            self.end_slope.denominator,
-        );
-
-        slope.greater_equal(adj_start) && slope.less_than(adj_end)
+        slope.greater_equal(self.start_slope) && slope.less_equal(self.end_slope)
     }
 }
 
@@ -237,7 +229,7 @@ where
         let mut rows: Vec<Row> = Vec::with_capacity(max_radius.min(64) as usize);
         rows.push(Row::new(1, Fraction::new(-1, 1), Fraction::new(1, 1)));
 
-        while let Some(row) = rows.pop() {
+        while let Some(mut row) = rows.pop() {
             if row.depth > max_radius {
                 continue;
             }
@@ -266,23 +258,20 @@ where
                 // Handle transitions between blocking and non-blocking tiles
                 if let Some(prev_blocking) = prev_tile_blocking {
                     if prev_blocking && !tile_blocking {
-                        // Transition from wall to floor - start new slope
-                        let mut new_row = row.next();
-                        new_row.start_slope = Row::slope(col, new_row.depth);
-                        rows.push(new_row);
+                        // Transition from wall to floor - start from left edge of floor tile
+                        row.start_slope = Row::slope(col, row.depth);
                     } else if !prev_blocking && tile_blocking {
-                        // Transition from floor to wall - end current slope
+                        // Transition from floor to wall - push segment ending at left edge of wall
                         let mut next_row = row.next();
-                        next_row.end_slope = Row::slope(col, next_row.depth);
+                        next_row.end_slope = Row::slope(col, row.depth);
                         rows.push(next_row);
-                        break;
                     }
                 }
 
                 prev_tile_blocking = Some(tile_blocking);
             }
 
-            // Continue to next row if we didn't end on a blocking tile
+            // Continue to next row if we ended on a floor tile
             if prev_tile_blocking == Some(false) {
                 rows.push(row.next());
             }
@@ -353,6 +342,7 @@ fn isqrt(x: i32) -> i32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashSet;
 
     #[test]
     fn test_fov_empty_room() {
@@ -415,7 +405,6 @@ mod tests {
 
         assert!(half.greater_equal(quarter));
         assert!(!quarter.greater_equal(half) || quarter == half);
-        assert!(quarter.less_than(half));
     }
 
     #[test]
@@ -464,5 +453,26 @@ mod tests {
         assert!(visible.contains(&Point::new(-5, 0)));
         assert!(visible.contains(&Point::new(0, 5)));
         assert!(visible.contains(&Point::new(0, -5)));
+    }
+
+    #[test]
+    fn test_fov_diagonal_visible_empty_room() {
+        let origin = Point::new(0, 0);
+        let radius = 8;
+        let mut visible = HashSet::new();
+
+        compute_fov(origin, radius, &|_| false, &mut |p| {
+            visible.insert(p);
+        });
+
+        let radius_sq = radius * radius;
+        let mut d = 1;
+        while d * d * 2 <= radius_sq {
+            assert!(visible.contains(&Point::new(d, d)));
+            assert!(visible.contains(&Point::new(-d, d)));
+            assert!(visible.contains(&Point::new(d, -d)));
+            assert!(visible.contains(&Point::new(-d, -d)));
+            d += 1;
+        }
     }
 }

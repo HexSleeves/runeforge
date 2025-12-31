@@ -13,6 +13,7 @@ description             = "Field-of-view algorithms for the Runeforge roguelike 
 
 [dependencies]
 runeforge-geometry = { workspace = true }
+num-integer        = { workspace = true }
 
 [dev-dependencies]
 criterion          = { workspace = true }
