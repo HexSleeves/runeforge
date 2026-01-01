@@ -49,7 +49,7 @@ Implementation includes:
 - Comprehensive error handling with DrunkardError
 - Full test coverage (13 tests), Algorithm:1. Start at configured position (center or random)
 
-2. Take random steps in cardinal directions
+1. Take random steps in cardinal directions
 2. Carve floor tiles along the path
 3. Continue until target floor percentage reached
 4. Results in meandering, connected tunnel systems

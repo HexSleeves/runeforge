@@ -1,0 +1,9 @@
+[book]
+authors  = ["Runeforge Contributors"]
+language = "en"
+src      = "src"
+title    = "Runeforge Documentation"
+
+[output.html]
+git-repository-url = "https://github.com/runeforge-rs/runeforge"
+edit-url-template  = "https://github.com/runeforge-rs/runeforge/edit/main/docs/{path}"

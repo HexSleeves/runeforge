@@ -221,8 +221,8 @@ mod tests {
     #[test]
     fn test_rect_contains_point() {
         let rect = Rect::new(0, 0, 10, 10);
-        assert!(rect.contains(Point::new(5, 5)));
-        assert!(!rect.contains(Point::new(15, 15)));
+        assert!(rect.contains(IVec2::new(5, 5)));
+        assert!(!rect.contains(IVec2::new(15, 15)));
     }
 }
 ```
@@ -267,7 +267,7 @@ Enable features explicitly when testing specific functionality.
 Implement `From` traits for ergonomic conversions:
 
 ```rust
-impl From<(i32, i32)> for Point {
+impl From<(i32, i32)> for IVec2 {
     fn from((x, y): (i32, i32)) -> Self {
         Self::new(x, y)
     }
